@@ -450,22 +450,33 @@ class Orders {
   }
 
   // Create an Order object from a DocumentSnapshot
-  static Orders fromDocument(DocumentSnapshot<Object?> doc) {
+  // Create an Order object from a DocumentSnapshot
+  factory Orders.fromDocument(DocumentSnapshot<Object?> doc) {
+    if (doc.data() == null) {
+      throw Exception("Document data is null for doc ID: ${doc.id}");
+    }
+
     final data = doc.data() as Map<String, dynamic>;
 
     return Orders(
       id: doc.id,
       userId: data['userId'] ?? '',
       storeId: data['storeId'] ?? '',
-      products: (data['products'] as List<dynamic>)
+      products: (data['products'] as List<dynamic>? ?? [])
           .map((productMap) => Product.fromMap(productMap))
           .toList(),
-      totalPrice: data['totalPrice']?.toDouble() ?? 0.0,
+      totalPrice: (data['totalPrice'] as num?)?.toDouble() ?? 0.0,
       status: data['status'] ?? 'Pending',
-      placedAt: data['placedAt'] as Timestamp, // Ensure this is a Timestamp
+      placedAt: data['placedAt'] is Timestamp
+          ? data['placedAt'] as Timestamp
+          : Timestamp.now(), // Default to current timestamp if missing
       deliveryMethod: data['deliveryMethod'] ?? 'Unknown',
-      userDetails: CustomUser.fromMap(data['userDetails']), // Map user details
-      // Handle potential null store details
+      userDetails: data['userDetails'] != null
+          ? CustomUser.fromMap(data['userDetails'] as Map<String, dynamic>)
+          : null,
+      storeDetails: data['storeDetails'] != null
+          ? Store.fromMap(data['storeDetails'] as Map<String, dynamic>)
+          : null,
     );
   }
 

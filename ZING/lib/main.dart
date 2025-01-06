@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import this for orientation lock
 import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 import 'package:zing/Service/SettingProvider.dart';
@@ -18,8 +19,29 @@ import 'Cart/CartProvider.dart';
 import 'Service/ChatProvider.dart';
 import 'Service/OrderProvider.dart';
 
+Future<void> requestPermissions() async {
+  try {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.notification,
+      // Add any other permissions your app needs
+    ].request();
+
+    if (statuses[Permission.notification] == PermissionStatus.denied) {
+      // Handle denied case
+      debugPrint('Notification permission denied');
+    } else if (statuses[Permission.notification] == PermissionStatus.permanentlyDenied) {
+      // Guide user to app settings
+      await openAppSettings();
+    }
+  } catch (e) {
+    debugPrint('Error requesting permissions: $e');
+  }
+}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Request permissions before Firebase initialization
+  await requestPermissions();
 
   // Lock the app to portrait mode
   await SystemChrome.setPreferredOrientations([
@@ -29,21 +51,26 @@ void main() async {
 
   var logger = Logger();
   try {
-  logger.d("Logger is working!");
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: 'AIzaSyCoqKGffVMkwU-QntZpBGGOP1raLV0JnkY',
-      appId: '1:685215974205:android:0888761d97dc3b87267b54',
-      messagingSenderId: '685215974205',
-      projectId: 'zing-cb51c',
-      storageBucket: 'zing-cb51c.appspot.com',
-    ),
-  );
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-    appleProvider: AppleProvider.debug,
-  );
-  print("Firebase initialized successfully.");
+    logger.d("Logger is working!");
+
+    // Initialize Firebase first
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: 'AIzaSyCoqKGffVMkwU-QntZpBGGOP1raLV0JnkY',
+        appId: '1:685215974205:android:382cf5dcbd774cfa267b54',
+        messagingSenderId: '685215974205',
+        projectId: 'zing-cb51c',
+        storageBucket: 'zing-cb51c.appspot.com',
+      ),
+    );
+
+    // After Firebase is initialized, activate App Check
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,  // Change to appropriate provider for production
+      appleProvider: AppleProvider.debug,     // Change to appropriate provider for production
+    );
+
+    print("Firebase initialized successfully.");
   } catch (e) {
     print("Firebase initialization error: $e");
   }
@@ -66,7 +93,6 @@ void main() async {
     ),
   );
 }
-
 class Zing extends StatelessWidget {
   const Zing({super.key});
 

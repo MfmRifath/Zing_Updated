@@ -42,6 +42,32 @@ class CustomUserProvider with ChangeNotifier {
     }
   }
 
+    void refreshUserData() {
+      fetchUserDataFromFirestore();  // Call to re-fetch data from Firestore
+    }
+
+    // Fetch the current logged-in user's details from Firestore
+    Future<void> fetchUserDataFromFirestore() async {
+      User? firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) {
+        print("No user is logged in.");
+        return;
+      }
+
+      try {
+        final userRef = FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid);
+        final DocumentSnapshot<Map<String, dynamic>> userDoc = await userRef.get();
+
+        if (userDoc.exists && userDoc.data() != null) {
+          currentUser = CustomUser.fromDocument(userDoc);  // Update the current user
+          notifyListeners();  // Notify listeners about the data change
+        } else {
+          print("User data not found.");
+        }
+      } catch (e) {
+        print("Error fetching user details: $e");
+      }
+    }
   // Fetch all users from Firestore
   // Fetch all users from Firestore with real-time updates
   Future<void> fetchUsers() async {

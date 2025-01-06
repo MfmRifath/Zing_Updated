@@ -36,7 +36,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
     nameController = TextEditingController(text: widget.product?.name ?? '');
     priceController = TextEditingController(text: widget.product?.price.toString() ?? '');
     descriptionController = TextEditingController(text: widget.product?.description ?? '');
-    ratingController = TextEditingController(text: widget.product?.rating.toString() ?? '');
     _uploadedImageUrl = widget.product?.imageUrl; // Set initial image URL if editing
   }
 
@@ -110,8 +109,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
               _buildTextField(priceController, 'Price', TextInputType.numberWithOptions(decimal: true)),
               SizedBox(height: 16),
               _buildTextField(descriptionController, 'Description', TextInputType.text),
-              SizedBox(height: 16),
-              _buildTextField(ratingController, 'Rating', TextInputType.numberWithOptions(decimal: true)),
               SizedBox(height: 16),
 
               // Image picker and preview section

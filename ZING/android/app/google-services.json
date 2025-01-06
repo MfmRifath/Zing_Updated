@@ -8,17 +8,53 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:685215974205:android:0888761d97dc3b87267b54",
+        "mobilesdk_app_id": "1:685215974205:android:382cf5dcbd774cfa267b54",
         "android_client_info": {
           "package_name": "com.zingmarketingmastery.zing"
         }
       },
       "oauth_client": [
         {
-          "client_id": "685215974205-fnmimo0ph9lgci25atbgsf2vs6bnbecu.apps.googleusercontent.com",
+          "client_id": "685215974205-ptcq9eus72qaihhqnvrppmho5e29ru7i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoqKGffVMkwU-QntZpBGGOP1raLV0JnkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "685215974205-ptcq9eus72qaihhqnvrppmho5e29ru7i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "685215974205-er21veu37lcohv95rl3dc1h189h1101d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "lk.payhere.zing"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685215974205:android:e2b09771d5b4bbf4267b54",
+        "android_client_info": {
+          "package_name": "lk.payhere.zing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "685215974205-bi7gtp60oc3b0tt5l0mhehmtbc8dg6c7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.zingmarketingmastery.zing",
+            "package_name": "lk.payhere.zing",
             "certificate_hash": "271ae3778dfe068a58254333868754c506e4647b"
           }
         },
