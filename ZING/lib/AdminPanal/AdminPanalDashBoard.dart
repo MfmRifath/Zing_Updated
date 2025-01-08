@@ -2,15 +2,14 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
-
-import 'package:zing/AdminPanal/AdminUpdateRegitrationAmount.dart';
 import 'package:zing/Service/StoreProvider.dart';
 import 'package:zing/AdminPanal/AdminStoreDetails.dart';
 import 'package:zing/AdminPanal/ManageUser.dart';
-import 'package:zing/AdminPanal/PaymentManagement.dart';
+
 import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/AdminPanal/AddAdminScreen.dart';
 import '../Service/CoustomUserProvider.dart';
+import 'AdminUpdateRegitrationAmount.dart';
 
 class AdminPanelDashboard extends StatelessWidget {
   @override
@@ -48,25 +47,7 @@ class AdminPanelDashboard extends StatelessWidget {
               ),
               _buildDivider(),
 
-              // Manage Payments Section
-              SlideInRight(
-                child: _buildSectionTitle(context, 'Manage Payments'),
-              ),
-              SlideInRight(
-                delay: Duration(milliseconds: 300),
-                child: _buildElevatedButton(
-                  context,
-                  icon: Icons.payment,
-                  label: 'Manage Payments',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PaymentManagementScreen()),
-                    );
-                  },
-                ),
-              ),
-              _buildDivider(),
+
 
               // Manage Registration Amount Section
               FadeIn(

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
-import '../../Widgets/StoreManagementWidgets/BuildDayLeftIndicator.dart';
 import '../../Widgets/StoreManagementWidgets/BuildProductGride.dart';
 import '../../Widgets/StoreManagementWidgets/BuildRenewScreen.dart';
 import '../../Widgets/StoreManagementWidgets/BuildStoreHeader.dart';
@@ -22,10 +21,8 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
   bool _isLoading = true;
   int _daysLeft = 0;
   bool _hasAccess = true;
-  bool _showOrderManagement = false; // Controls the display of order management
-
+  bool _showOrderManagement = false;
   late FirebaseFirestore _firestore;
-
   @override
   void initState() {
     super.initState();
@@ -69,13 +66,16 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
 
         if (_daysLeft <= 0) {
           _hasAccess = false;
+          _currentUser?.storeAccess =false;
         }
       } else {
         _hasAccess = false;
+        _currentUser?.storeAccess =false;
       }
     } catch (e) {
       print("Error fetching latest payment: $e");
       _hasAccess = false;
+      _currentUser?.storeAccess =false;
     }
   }
 
@@ -113,59 +113,57 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
       return Center(child: CircularProgressIndicator());
     }
 
-    if (_currentUser!.role == 'User') {
-      return Center(child: Text('You are not authorized to access this section.'));
+    if (_currentUser!.storeAccess == false) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock, size: 60, color: Colors.redAccent),
+            SizedBox(height: 10),
+            Text(
+              'Access Denied',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Only store owners can access this section.',
+              textAlign: TextAlign.center,
+            ),
+            if (_currentUser!.store == null) ...[
+              SizedBox(height: 20),
+              buildAddStoreButton(context), // Show Add Store Button for users without a store
+            ],
+            if (_hasAccess == false) ...[
+              SizedBox(height: 20),
+              buildRenewScreen(context, _currentUser!) // Show Add Store Button for users without a store
+            ],
+
+          ],
+        ),
+      );
     }
 
     if (_currentUser!.store == null) {
-      return buildAddStoreButton(context);
+      return buildAddStoreButton(context); // Add button for users with no store
     }
 
-    return _hasAccess ? _buildStoreManagementContent() : buildRenewScreen(context, _currentUser!);
+    return  _buildStoreManagementContent() ; // Renew screen if access expired
   }
-
   Widget _buildStoreManagementContent() {
     return SingleChildScrollView(
-      child: ConstrainedBox( // Adding ConstrainedBox to prevent unbounded height
-        constraints: BoxConstraints(minHeight: 0.0), // Ensure the height is constrained
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: 0.0),
         child: Column(
           children: [
-            // Days Left Indicator
-            buildDaysLeftIndicator(_daysLeft),
 
-            // Store Header Section
             buildStoreHeader(_currentUser!.store!, _currentUser!, context),
-
-            // Product Grid Section
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  child: buildProductGrid(_currentUser!.store!, _products, context),
-                ),
-              ),
-            ),
-
-            // Add Product Button Section
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: buildAddProductButton(_currentUser!.store!, context),
-            ),
-
-            // Navigate to Order Management Button
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    // Toggle the visibility of order management
-                    _showOrderManagement = !_showOrderManagement; // Set this first to handle UI change immediately
+                    _showOrderManagement = !_showOrderManagement;
                   });
-
-                  // Push the OrderManagementPage when toggling to order management
                   if (_showOrderManagement) {
                     Navigator.push(
                       context,
@@ -176,6 +174,18 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
                   }
                 },
                 child: Text(_showOrderManagement ? 'Back to Store Management' : 'Manage Orders'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: buildAddProductButton(_currentUser!.store!, context),
+            ),
+            Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: buildProductGrid(_currentUser!.store!, _products, context),
               ),
             ),
           ],

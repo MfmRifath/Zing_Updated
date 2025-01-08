@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 import 'package:zing/Service/StoreProvider.dart';
@@ -425,70 +424,80 @@ class _AddEditStoreDialogState extends State<AddEditStoreDialog> {
                               products: [],
                               location: GeoPoint(storeLocation!.latitude, storeLocation!.longitude),
                             );
-                            makePayment(context, newStore, currentUser, storeProvider, userProvider, widget.refreshStoreData);
+                            await storeProvider.addStore(newStore,userProvider);
+                            // Show bank details after store registration
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Admin Bank Details'),
+                                  content: Text(
+                                      'To complete get your store, please pay the registration fee to the following bank account:'
+                                          '\nBank: XYZ Bank'
+                                          '\nAccount Number: 123456789'
+                                          '\nAccount Name: Admin Name'
+                                          '\nBranch: XYZ Branch'
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+
+                            widget.refreshStoreData();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Store added successfully!'),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: Colors.green,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
                           }
                         }
                       } catch (e) {
+                        setState(() {
+                          isLoading = false;
+                        });
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Error occurred while saving store: $e'),
+                            content: Text('Error: $e'),
                             behavior: SnackBarBehavior.floating,
                             backgroundColor: Colors.redAccent,
                             duration: Duration(seconds: 3),
                           ),
                         );
-                      } finally {
-                        setState(() {
-                          isLoading = false;
-                        });
                       }
-
-                      Navigator.of(context).pop();
                     },
+                    child: isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(isEditMode ? 'Save Changes' : 'Add Store'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isEditMode ? Colors.orangeAccent : Colors.blueAccent,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      backgroundColor: Colors.blueAccent,
+                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 4,
-                    ),
-                    child: isLoading
-                        ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                        : Text(
-                      isEditMode ? 'Save Changes' : 'Add Store',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          if (isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
         ],
       ),
     );
   }
-}
-
-class SelectLocationScreen extends StatefulWidget {
+}class SelectLocationScreen extends StatefulWidget {
   final LatLng? initialLocation;
 
   const SelectLocationScreen({this.initialLocation});
@@ -541,78 +550,3 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
     );
   }
 }
-void makePayment(BuildContext context, Store newStore, CustomUser user, StoreProvider storeProvider, CustomUserProvider userProvider, Function refreshStoreData) async {
-  final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-
-  // Ensure the registration amount has been fetched
-  await settingsProvider.fetchGlobalRegistrationAmount();
-
-  if (settingsProvider.registrationAmount == null || settingsProvider.currency == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: Registration amount or currency is not set.')),
-    );
-    return;
-  }
-
-  var paymentObject = {
-    "sandbox": true, // Use true for testing, false for production
-    "merchant_id": "1228930",
-    "merchant_secret": "Mjk3Njc0NDcwNTI1NDY1MDE4ODkxMTQ0NjI4NTMzMzE5Nzg0MzU1MQ==",
-    "notify_url": "http://sample.com/notify",
-    "order_id": "ItemNo12345",
-    "items": "Store Management Access",
-    "amount": settingsProvider.registrationAmount!.toString(),
-    "currency": settingsProvider.currency,
-    "first_name": user.name,
-    "last_name": "", // Provide an empty string if there's no last name
-    "email": user.email,
-    "phone": user.phoneNumber,
-    "address": "No.1, Galle Road",
-    "city": "Colombo",
-    "country": "Sri Lanka"
-  };
-
-  PayHere.startPayment(paymentObject, (paymentId) async {
-    print("Payment Success. Payment Id: $paymentId");
-
-    try {
-      // Add the store to Firestore after successful payment
-      await storeProvider.addStore(newStore, userProvider);
-
-      final payment = Payment(
-        storeId: newStore.id!,
-        paymentId: paymentId,
-        amount: settingsProvider.registrationAmount!,
-        currency: settingsProvider.currency!,
-        items: 'Store Management Access',
-        paymentStatus: 'Completed',
-        paymentDate: Timestamp.now(),
-      );
-
-      // Add payment to current user
-      await userProvider.addPaymentToCurrentUser(payment);
-
-      // Re-fetch user details after payment
-      await userProvider.fetchUserDetails();
-
-      // Refresh the store list on the main screen
-      refreshStoreData(); // This will trigger the store data refresh
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Store added successfully after payment!')));
-    } catch (e) {
-      print('Error adding store: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding store after payment')));
-    }
-
-    Navigator.of(context).pop();
-
-  }, (error) {
-    print("Payment Failed. Error: $error");
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment failed, store not added')));
-
-  }, () {
-    print("Payment Dismissed");
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment dismissed')));
-  });
-}
-
-

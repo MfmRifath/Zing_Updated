@@ -7,6 +7,7 @@ class CustomUser {
   String phoneNumber;
   String address;
   String profileImageUrl;
+  bool storeAccess;
   String role;
   bool? hasPaid; // Add this field to track payment status
   Store? store; // Optional Store property for users with the role 'Owner'
@@ -19,6 +20,7 @@ class CustomUser {
     required this.name,
     required this.email,
     required this.phoneNumber,
+    this.storeAccess =false,
     this.address = '',
     this.profileImageUrl = '',
     this.role ='User',
@@ -61,6 +63,7 @@ class CustomUser {
       'id': id,
       'name': name,
       'email': email,
+      'storeAccess':storeAccess,
       'hasPaid': hasPaid ?? false,
       'phoneNumber': phoneNumber,
       'address': address,
@@ -78,6 +81,7 @@ class CustomUser {
       id: doc.id,
       name: data['name'] ?? '',
       email: data['email'] ?? '',
+      storeAccess: data['storeAccess'] ?? false,
       phoneNumber: data['phoneNumber'] ?? '',
       address: data['address'] ?? '',
       profileImageUrl: data['profileImageUrl'] ?? '',
@@ -96,6 +100,7 @@ class CustomUser {
       id: data['id'] ?? '',
       name: data['name'] ?? '',
       email: data['email'] ?? '',
+      storeAccess: data['storeAccess'] ?? false,
       phoneNumber: data['phoneNumber'] ?? '',
       address: data['address'] ?? '',
       profileImageUrl: data['profileImageUrl'] ?? '',

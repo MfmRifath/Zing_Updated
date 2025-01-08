@@ -31,7 +31,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
           children: [
             Form(
               key: _formKey,
-              child: Column(
+              child: ListView(
                 children: [
                   _buildTextField(
                     label: 'Name',
@@ -58,7 +58,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                     validator: (value) => value!.isEmpty ? 'Enter a phone number' : null,
                     icon: Icons.phone,
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
@@ -79,12 +79,14 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ), backgroundColor: Colors.blueAccent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 6,
                     ),
                   ),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -109,16 +111,18 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     bool obscureText = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: TextFormField(
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: TextStyle(color: Colors.blueAccent),
           prefixIcon: Icon(icon, color: Colors.blueAccent),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
           filled: true,
           fillColor: Colors.grey[200],
+          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
         ),
         obscureText: obscureText,
         onChanged: onChanged,

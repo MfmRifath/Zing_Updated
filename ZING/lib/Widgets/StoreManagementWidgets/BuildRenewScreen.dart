@@ -1,93 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
-import 'package:provider/provider.dart';
-
 import '../../Modal/CoustomUser.dart';
-import '../../Service/CoustomUserProvider.dart';
-import '../../Service/SettingProvider.dart';
-import '../../Service/StoreProvider.dart';
 
-
-void makePayment(
-    BuildContext context,
-    Store store,
-    CustomUser user,
-    StoreProvider storeProvider,
-    CustomUserProvider userProvider, {
-      required VoidCallback onPaymentSuccess,
-    }) async {
-  final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-
-  // Ensure the registration amount is fetched
-  await settingsProvider.fetchGlobalRegistrationAmount();
-
-  if (settingsProvider.registrationAmount == null || settingsProvider.currency == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: Registration amount or currency is not set.')),
-    );
-    return;
-  }
-
-  var paymentObject = {
-    "sandbox": true,
-    "merchant_id": "1228930",
-    "merchant_secret": "Mjk3Njc0NDcwNTI1NDY1MDE4ODkxMTQ0NjI4NTMzMzE5Nzg0MzU1MQ==",
-    "notify_url": "http://sample.com/notify",
-    "order_id": "ItemNo12345",
-    "items": "Store Management Access",
-    "amount": settingsProvider.registrationAmount!.toString(),
-    "currency": settingsProvider.currency,
-    "first_name": user.name,
-    "last_name": "",
-    "email": user.email,
-    "phone": user.phoneNumber,
-    "address": "No.1, Galle Road",
-    "city": "Colombo",
-    "country": "Sri Lanka"
-  };
-
-  PayHere.startPayment(paymentObject, (paymentId) async {
-    print("Payment Success. Payment Id: $paymentId");
-
-    final paymentData = {
-      "paymentId": paymentId,
-      "amount": settingsProvider.registrationAmount!,
-      "currency": settingsProvider.currency!,
-      "items": 'Store Management Access',
-      "paymentStatus": 'Completed',
-      "paymentDate": Timestamp.now(),
-      "storeId": store.id
-    };
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.id)
-        .collection('payments')
-        .add(paymentData);
-
-    // Invoke success callback to refresh UI
-    onPaymentSuccess();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment successful. Store access renewed!')),
-    );
-  }, (error) {
-    print("Payment Failed. Error: $error");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment failed, store not added')),
-    );
-  }, () {
-    print("Payment Dismissed");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment dismissed')),
-    );
-  });
-}
 
 Widget buildRenewScreen(BuildContext context, CustomUser currentUser) {
-  final storeProvider = Provider.of<StoreProvider>(context, listen: false);
-  final customUserProvider = Provider.of<CustomUserProvider>(context, listen: false);
 
   return Center(
     child: Column(
@@ -109,19 +24,67 @@ Widget buildRenewScreen(BuildContext context, CustomUser currentUser) {
         ),
         elevation: 4.0,
       ),
-      onPressed: () {
-        makePayment(
-          context,
-          currentUser.store!,
-          currentUser,
-          storeProvider,
-          customUserProvider,
-          onPaymentSuccess: () {
-            storeProvider.fetchStores();
-            customUserProvider.refreshUserData();
-          },
-        );
-      },
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Renew Access - Payment Details'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Please make a payment to the following bank account:',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Text('Bank Name:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 8),
+                        Text('XYZ Bank'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text('Account Name:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 8),
+                        Text('John Doe'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text('Account Number:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 8),
+                        Text('1234567890'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text('Branch:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 8),
+                        Text('Main Branch'),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    Text(
+                      'After payment, please contact us with the payment receipt to renew your access.',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Close'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
     )
       ],
     ),

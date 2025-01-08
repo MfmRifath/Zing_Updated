@@ -19,9 +19,44 @@ class CustomUserProvider with ChangeNotifier {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   List<CustomUser> get users => _users;
-
   CustomUserProvider() {
     _initializeUser();
+  }
+
+  Future<void> updatePaymentStatusAndStoreAccess(CustomUser user, bool accessStatus) async {
+    try {
+      // Update `storeAccess` field
+      user.storeAccess = accessStatus;
+
+      // Fetch the latest payment record and update it
+      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.id)
+          .collection('payments')
+          .orderBy('paymentDate', descending: true)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        var paymentDoc = snapshot.docs.first;
+        // Update the payment document with current payment status and the current date
+        await paymentDoc.reference.update({
+          'paymentStatus': 'Completed',
+          'paymentDate': FieldValue.serverTimestamp(), // Sets the current timestamp in Firestore
+        });
+      }
+
+      // Update Firestore to reflect the changes
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.id)
+          .update({'storeAccess': accessStatus, 'hasPaid': true});
+
+      notifyListeners();
+    } catch (e) {
+      print('Error updating payment status or store access: $e');
+      rethrow;
+    }
   }
 
   // Initialize the user data and payments concurrently

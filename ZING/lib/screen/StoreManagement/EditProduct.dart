@@ -36,6 +36,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     nameController = TextEditingController(text: widget.product?.name ?? '');
     priceController = TextEditingController(text: widget.product?.price.toString() ?? '');
     descriptionController = TextEditingController(text: widget.product?.description ?? '');
+    ratingController = TextEditingController(text: widget.product?.rating?.toString() ?? ''); // Initialize ratingController
     _uploadedImageUrl = widget.product?.imageUrl; // Set initial image URL if editing
   }
 

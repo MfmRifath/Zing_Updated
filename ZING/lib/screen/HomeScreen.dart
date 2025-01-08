@@ -279,10 +279,19 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 ),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: screenWidth * 0.08,
-                      backgroundImage: AssetImage(
-                          'assets/images/${categories[index].toLowerCase()}.jpg'),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(screenWidth * 0.02),  // Adjust border radius as needed
+                      child: Container(
+                        width: screenWidth * 0.16,
+                        height: screenWidth * 0.16,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(
+                                'assets/images/${categories[index].toLowerCase()}.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     Text(
@@ -302,7 +311,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
       ),
     );
   }
-
   double? _calculateDistance(double storeLat, double storeLng) {
     if (_currentPosition == null) {
       print('User location is not available');
