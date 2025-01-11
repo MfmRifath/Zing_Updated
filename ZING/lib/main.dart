@@ -16,7 +16,9 @@ import 'dart:async';
 import 'package:zing/screen/StartingScreens/onboardingScreen.dart';
 
 import 'Cart/CartProvider.dart';
+import 'Service/AdvertisementProvider.dart';
 import 'Service/ChatProvider.dart';
+import 'Service/OfferProvider.dart';
 import 'Service/OrderProvider.dart';
 
 Future<void> requestPermissions() async {
@@ -83,11 +85,15 @@ void main() async {
         ChangeNotifierProvider(create: (_) => StoreProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()..fetchGlobalRegistrationAmount()),
-        ChangeNotifierProvider(create: (_) => ChatProvider(
-          userId: '',    // Temporary values, will be updated in `update`
-          storeId: '',   // Temporary values, will be updated in `update`
-          senderRole: '', // Temporary values, will be updated in `update`
-        )),
+        ChangeNotifierProvider(
+          create: (context) => ChatProvider(
+            userId: '',    // Temporary placeholder
+            storeId: '',   // Temporary placeholder
+            senderRole: '', // Temporary placeholder
+          ),
+        ),
+        ChangeNotifierProvider(create: (_) => OfferProvider()..fetchOffers()),
+        ChangeNotifierProvider(create: (_) => AdvertisementProvider()..fetchAdvertisements()),
       ],
       child: const Zing(), // Add the const keyword in the correct place
     ),

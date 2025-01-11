@@ -53,9 +53,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _pickAndSendImage(ChatProvider chatProvider, CustomUser currentUser, CustomUserProvider customUserProvider) async {
+  Future<void> _pickAndSendImage(ChatProvider chatProvider,
+      CustomUser currentUser, CustomUserProvider customUserProvider) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery); // You can also use ImageSource.camera for camera
+    final pickedFile = await picker.pickImage(source: ImageSource
+        .gallery); // You can also use ImageSource.camera for camera
 
     if (pickedFile != null) {
       File imageFile = File(pickedFile.path);
@@ -68,9 +70,9 @@ class _ChatScreenState extends State<ChatScreen> {
         chatProvider.sendMessage(
           '',
           currentUser,
-          currentUser,  // Receiver is either store or user
-          null,  // No reply
-          imageUrl,  // Image URL
+          currentUser, // Receiver is either store or user
+          null, // No reply
+          imageUrl, // Image URL
         );
       }
     }
@@ -98,33 +100,41 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _confirmDeleteMessage(BuildContext context, ChatProvider chatProvider, String messageId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Message'),
-          content: Text('Are you sure you want to delete this message?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                chatProvider.deleteMessage(messageId);
-                Navigator.of(context).pop();
-              },
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
+  void _confirmDeleteMessage(BuildContext context, ChatProvider chatProvider, ChatMessage message) {
+    if (message.senderId == widget.currentUser.id) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete Message'),
+            content: Text('Are you sure you want to delete this message?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  chatProvider.deleteMessage(message.id);
+                  Navigator.of(context).pop();
+                },
+                child: Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You can only delete your own messages.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
-
   Future<String?> _translateMessage(String message, String targetLang) async {
     return await _translationService.translateText(message, targetLang);
   }
@@ -132,8 +142,9 @@ class _ChatScreenState extends State<ChatScreen> {
   BoxDecoration _messageDecoration(bool isSentByUser) {
     return BoxDecoration(
       gradient: isSentByUser
-          ? LinearGradient(colors: [Colors.deepPurpleAccent, Colors.purpleAccent])
-          : LinearGradient(colors: [Colors.greenAccent, Colors.lightGreen]),
+          ? LinearGradient(
+          colors: [Colors.deepPurpleAccent, Colors.purpleAccent])
+          : LinearGradient(colors: [Colors.black, Colors.white]),
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(16),
         topRight: Radius.circular(16),
@@ -146,15 +157,19 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
-    final customUserProvider = Provider.of<CustomUserProvider>(context, listen: false);
+    final customUserProvider = Provider.of<CustomUserProvider>(
+        context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.currentUser.role == 'Owner' && widget.currentUser.store!.id == widget.storeId
+          (widget.currentUser.role == 'Owner' ||
+              widget.currentUser.role == 'Admin') &&
+              widget.currentUser.store!.id == widget.storeId
               ? 'Chat with Customer'
               : 'Chat with Store',
-          style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500),
+          style: TextStyle(
+              fontFamily: 'Montserrat', fontWeight: FontWeight.w500),
         ),
         backgroundColor: Colors.deepPurpleAccent,
         elevation: 2,
@@ -221,12 +236,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: StreamBuilder<List<ChatMessage>>(
-                      stream: widget.currentUser.role == "Owner" && widget.currentUser.store!.id == widget.storeId
-                          ? chatProvider.fetchMessagesForStoreOwner(widget.storeId)
+                      stream: (widget.currentUser.role == "Owner" ||
+                          widget.currentUser.role == "Admin") &&
+                          widget.currentUser.store!.id == widget.storeId
+                          ? chatProvider.fetchMessagesForStoreOwner(
+                          widget.storeId)
                           : chatProvider.fetchMessages(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
                         }
 
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -235,16 +254,25 @@ class _ChatScreenState extends State<ChatScreen> {
 
                         final messages = snapshot.data!;
 
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                        WidgetsBinding.instance.addPostFrameCallback((_) =>
+                            _scrollToBottom());
 
                         return ListView.builder(
                           controller: _scrollController,
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
                             final message = messages[index];
-                            bool isSentByUser = message.senderId == widget.currentUser.id || (widget.currentUser.store != null ? message.senderId == widget.currentUser.store!.id : false);
+                            bool isSentByUser = message.senderId ==
+                                widget.currentUser.id ||
+                                (widget.currentUser.store != null
+                                    ? message.senderId ==
+                                    widget.currentUser.store!.id
+                                    : false);
 
-                            final currentUserProfileImageUrl = (widget.currentUser.role == 'Owner' && widget.currentUser.store!.id == widget.storeId)
+                            final currentUserProfileImageUrl = ((widget
+                                .currentUser.role == 'Owner' ||
+                                widget.currentUser.role == 'Admin') &&
+                                widget.currentUser.store!.id == widget.storeId)
                                 ? widget.currentUser.store!.imageUrl
                                 : widget.userImageUrl;
 
@@ -252,16 +280,35 @@ class _ChatScreenState extends State<ChatScreen> {
                               key: Key(message.id),
                               direction: DismissDirection.startToEnd,
                               onDismissed: (direction) {
+                                // Show a confirmation dialog before deleting the message
+                                _confirmDeleteMessage(context, chatProvider, message);
                                 _selectMessageForReply(message);
+
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Message selected for reply')),
+                                  SnackBar(
+                                    content: Text('Message selected for reply'),
+                                    backgroundColor: Colors.greenAccent, // Changed color for feedback
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
                                 );
                               },
                               background: Container(
                                 alignment: Alignment.centerLeft,
                                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                                color: Colors.blueAccent.withOpacity(0.5),
-                                child: Icon(Icons.reply, color: Colors.white),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [Colors.blueAccent, Colors.blue.withOpacity(0.6)],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.reply, color: Colors.white, size: 28),
+                                    SizedBox(width: 10),
+                                    Text('Reply', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  ],
+                                ),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -273,57 +320,96 @@ class _ChatScreenState extends State<ChatScreen> {
                                         backgroundImage: message.senderProfileImageUrl.isNotEmpty
                                             ? NetworkImage(message.senderProfileImageUrl)
                                             : AssetImage('assets/images/zing.png') as ImageProvider,
-                                        radius: 24,
-                                        backgroundColor: Colors.white,
+                                        radius: 20,
+                                        backgroundColor: Colors.grey.shade100,
                                       ),
                                     if (!isSentByUser) SizedBox(width: 10),
                                     Flexible(
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 300),
                                         curve: Curves.easeInOut,
-                                        padding: const EdgeInsets.all(14.0),
-                                        decoration: _messageDecoration(isSentByUser),
+                                        padding: const EdgeInsets.all(12.0),
+                                        decoration: BoxDecoration(
+                                          color: isSentByUser ? Colors.deepPurpleAccent : Colors.grey.shade300,
+                                          borderRadius: BorderRadius.circular(16.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 5,
+                                              offset: Offset(2, 2),
+                                            ),
+                                          ],
+                                        ),
                                         child: Column(
                                           crossAxisAlignment: isSentByUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                           children: [
                                             if (message.replyToMessageContent != null)
-                                              Text(
-                                                'Replying to: ${message.replyToMessageContent}',
-                                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                              Padding(
+                                                padding: const EdgeInsets.only(bottom: 6.0),
+                                                child: Text(
+                                                  'Replying to: ${message.replyToMessageContent}',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
                                               ),
-                                            SizedBox(height: 4),
-                                            if (message.imageUrl != null) Image.network(message.imageUrl!), // Show image if available
+                                            if (message.imageUrl != null)
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(12),
+                                                child: Image.network(
+                                                  message.imageUrl!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
                                             SizedBox(height: 4),
                                             Text(
                                               _translatedMessages[message.id] ?? message.message,
-                                              style: TextStyle(color: Colors.white, fontSize: 16),
+                                              style: TextStyle(
+                                                color: isSentByUser ? Colors.white : Colors.black87,
+                                                fontSize: 16,
+                                              ),
                                             ),
                                             SizedBox(height: 4),
-                                            Text(
-                                              _formatTimestamp(message.timestamp),
-                                              style: TextStyle(fontSize: 10, color: Colors.grey[300]),
-                                            ),
-                                            TextButton(
-                                              onPressed: () async {
-                                                final translation = await _translateMessage(message.message, _selectedLanguage);
-                                                if (translation != null) {
-                                                  setState(() {
-                                                    _translatedMessages[message.id] = translation;
-                                                  });
-                                                }
-                                              },
-                                              child: Text('Translate', style: TextStyle(color: Colors.yellowAccent)),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  _formatTimestamp(message.timestamp),
+                                                  style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                                                ),
+                                                InkWell(
+                                                  onTap: () async {
+                                                    final translation = await _translateMessage(
+                                                        message.message, _selectedLanguage);
+                                                    if (translation != null) {
+                                                      setState(() {
+                                                        _translatedMessages[message.id] = translation;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(Icons.translate, color: Colors.yellowAccent, size: 16),
+                                                      SizedBox(width: 4),
+                                                      Text('Translate', style: TextStyle(color: Colors.yellowAccent)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
+                                    if (isSentByUser) SizedBox(width: 10),
                                     if (isSentByUser)
                                       CircleAvatar(
                                         backgroundImage: currentUserProfileImageUrl.isNotEmpty
                                             ? NetworkImage(currentUserProfileImageUrl)
                                             : AssetImage('assets/images/zing.png') as ImageProvider,
-                                        radius: 24,
+                                        radius: 20,
                                       ),
                                   ],
                                 ),
@@ -356,7 +442,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         ],
                       ),
                     ),
-                  _buildMessageInput(chatProvider, widget.currentUser, customUserProvider),
+                  _buildMessageInput(
+                      chatProvider, widget.currentUser, customUserProvider),
                 ],
               ),
             ],
@@ -371,72 +458,92 @@ class _ChatScreenState extends State<ChatScreen> {
     return "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}";
   }
 
-  Widget _buildMessageInput(ChatProvider chatProvider, CustomUser currentUser, CustomUserProvider customUserProvider) {
-    bool canSendMessage = currentUser.role == 'User' || (_selectedMessage != null && currentUser.role == 'Owner');
+  Widget _buildMessageInput(ChatProvider chatProvider, CustomUser currentUser,
+      CustomUserProvider customUserProvider) {
+    bool canSendMessage = (currentUser.role == 'User' ||
+        currentUser.role == 'Admin') ||
+        (_selectedMessage != null &&
+            (currentUser.role == 'Owner' || currentUser.role == 'Admin'));
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       child: Row(
         children: [
-          IconButton(
-            icon: Icon(Icons.photo, color: Colors.deepPurpleAccent),
-            onPressed: () => _pickAndSendImage(chatProvider, currentUser, customUserProvider),
+          GestureDetector(
+            onTap: () =>
+                _pickAndSendImage(
+                    chatProvider, currentUser, customUserProvider),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.deepPurpleAccent.withOpacity(0.1),
+              child: Icon(Icons.photo, color: Colors.deepPurpleAccent),
+            ),
           ),
+          SizedBox(width: 12),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30.0),
+                borderRadius: BorderRadius.circular(25.0),
+                border: Border.all(color: Colors.grey.shade300),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
-              child: TextField(
-                controller: chatProvider.messageController,
-                decoration: InputDecoration(
-                  hintText: 'Type your message...',
-                  hintStyle: TextStyle(fontFamily: 'Montserrat'),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: TextField(
+                  controller: chatProvider.messageController,
+                  style: TextStyle(fontFamily: 'Montserrat', fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: 'Type your message...',
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                    border: InputBorder.none,
+                  ),
+                  maxLines: null,
+                  enabled: canSendMessage,
                 ),
-                maxLines: null,
-                enabled: canSendMessage,
               ),
             ),
           ),
-          SizedBox(width: 8),
-          FloatingActionButton(
-            onPressed: canSendMessage
+          SizedBox(width: 12),
+          GestureDetector(
+            onTap: canSendMessage
                 ? () async {
               final message = chatProvider.messageController.text;
               if (_selectedMessage != null) {
                 chatProvider.sendMessage(
-                    message,
-                    currentUser,
-                    _selectedMessage!.senderId == widget.storeId
-                        ? currentUser
-                        : await customUserProvider.getUserById(_selectedMessage!.senderId),
-              _selectedMessage,
-              );
-              _cancelReply();
+                  message,
+                  currentUser,
+                  _selectedMessage!.senderId == widget.storeId
+                      ? currentUser
+                      : await customUserProvider.getUserById(
+                      _selectedMessage!.senderId),
+                  _selectedMessage,
+                );
+                _cancelReply();
               } else {
-              chatProvider.sendMessage(
-              message,
-              currentUser,
-              currentUser,
-              null,
-              );
+                chatProvider.sendMessage(
+                  message,
+                  currentUser,
+                  currentUser,
+                  null,
+                );
               }
               chatProvider.messageController.clear();
             }
                 : null,
-            child: Icon(Icons.send, color: Colors.white),
-            backgroundColor: canSendMessage ? Colors.deepPurpleAccent : Colors.grey,
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: canSendMessage ? Colors.black: Colors
+                  .grey.shade300,
+              child: Icon(Icons.send, color: Colors.white),
+            ),
           ),
         ],
       ),

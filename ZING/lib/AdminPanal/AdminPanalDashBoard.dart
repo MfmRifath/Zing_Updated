@@ -2,6 +2,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:zing/AdminPanal/ManageAdvertisement.dart';
+import 'package:zing/AdminPanal/ManageOffer.dart';
 import 'package:zing/Service/StoreProvider.dart';
 import 'package:zing/AdminPanal/AdminStoreDetails.dart';
 import 'package:zing/AdminPanal/ManageUser.dart';
@@ -103,6 +105,40 @@ class AdminPanelDashboard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => AddAdminScreen()),
+                    );
+                  },
+                ),
+              ),
+              BounceInUp(
+                child: _buildSectionTitle(context, 'Manage Offers'),
+              ),
+              BounceInUp(
+                delay: Duration(milliseconds: 300),
+                child: _buildElevatedButton(
+                  context,
+                  icon: Icons.admin_panel_settings,
+                  label: 'Add Offers',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ManageOfferPage()),
+                    );
+                  },
+                ),
+              ),
+              BounceInUp(
+                child: _buildSectionTitle(context, 'Manage Advertisements'),
+              ),
+              BounceInUp(
+                delay: Duration(milliseconds: 300),
+                child: _buildElevatedButton(
+                  context,
+                  icon: Icons.admin_panel_settings,
+                  label: 'Mange Advertisements',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ManageAdvertisementsPage()),
                     );
                   },
                 ),
