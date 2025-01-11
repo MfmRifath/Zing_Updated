@@ -8,37 +8,55 @@ class CompanyNavDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
+          // Drawer Header with gradient and logo
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue, // You can change to any color or gradient
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.purpleAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Company Logo
+                // Company Logo with subtle shadow
                 Container(
-                  height: 60,
-                  width: 60,
+                  height: 70,
+                  width: 70,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
                       image: AssetImage('assets/company_logo.png'), // Your company logo path
                       fit: BoxFit.cover,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 10),
-                // Company Name
+                SizedBox(height: 15),
+                // Company Name with increased font size
                 Text(
                   'Company Name',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 24,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
                   ),
                 ),
                 SizedBox(height: 5),
-                // Company Address
+                // Company Address with lighter text
                 Text(
                   'Company Address',
                   style: TextStyle(
@@ -49,7 +67,8 @@ class CompanyNavDrawer extends StatelessWidget {
               ],
             ),
           ),
-          // Animated ListTiles for company details
+
+          // Animated ListTiles for company details with improved UI
           _buildAnimatedListTile(
             delay: 100,
             icon: Icons.business,
@@ -76,12 +95,14 @@ class CompanyNavDrawer extends StatelessWidget {
             title: 'Website: www.company.com',
           ),
           Divider(),
+
+          // About Us with a clear CTA
           _buildAnimatedListTile(
             delay: 600,
             icon: Icons.info_outline,
             title: 'About Us',
             onTap: () {
-              // Add action to navigate to an "About Us" page or show more details
+              // Navigate to About Us page
             },
           ),
         ],
@@ -98,9 +119,24 @@ class CompanyNavDrawer extends StatelessWidget {
     return FadeInLeft(
       delay: Duration(milliseconds: delay),
       child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
+        leading: CircleAvatar(
+          backgroundColor: Colors.blueAccent,
+          child: Icon(icon, color: Colors.white),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
         onTap: onTap,
+        tileColor: Colors.transparent, // Make the background transparent for a cleaner look
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       ),
     );
   }

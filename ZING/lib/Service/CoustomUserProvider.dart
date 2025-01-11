@@ -457,7 +457,26 @@ class CustomUserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
+// Change password for the current user
+  Future<void> changePassword(String newPassword) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePassword(newPassword);
+        await user.reload(); // Reload user to apply changes
+        print("Password updated successfully.");
+      } else {
+        print("No user is logged in to change the password.");
+      }
+    } catch (e) {
+      if (e.toString().contains('requires-recent-login')) {
+        print("Error: The user needs to reauthenticate before changing the password.");
+      } else {
+        print("Error changing password: $e");
+      }
+      rethrow;
+    }
+  }
 
 
 }

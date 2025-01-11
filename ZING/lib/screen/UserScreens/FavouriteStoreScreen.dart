@@ -64,13 +64,13 @@ late CustomUser currentUser;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F7FA), // Light grey background color for a clean look
+       // Light grey background color for a clean look
       body: FutureBuilder<List<Store>>(
         future: _favoriteStoresFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: SpinKitFadingCircle(
-              color: Colors.blueAccent,
+                      color: Colors.blue,
               size: 60.0,
             ),);
           } else if (snapshot.hasError) {
@@ -92,11 +92,6 @@ late CustomUser currentUser;
                     duration: Duration(milliseconds: 300),
                     margin: EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF42A5F5), Color(0xFF1976D2)], // More vibrant gradient
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(

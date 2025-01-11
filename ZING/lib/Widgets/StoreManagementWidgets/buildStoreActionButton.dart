@@ -35,7 +35,7 @@ Widget buildStoreActions(Store userStore, CustomUser user, BuildContext context)
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orangeAccent,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -80,7 +80,7 @@ Widget buildStoreActions(Store userStore, CustomUser user, BuildContext context)
             ),
             label: Text(
               'Delete Store',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
         ],

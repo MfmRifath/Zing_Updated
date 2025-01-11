@@ -5,6 +5,7 @@ import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 import 'package:zing/screen/UserScreens/EditeUser.dart';
 import 'OrderHistoryPage.dart';
+import 'SettingPage.dart';
 
 class UserProfilePage extends StatelessWidget {
   @override
@@ -58,11 +59,6 @@ class UserProfilePage extends StatelessWidget {
         Container(
           height: screenHeight * 0.35,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.lightBlueAccent],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black26,
@@ -133,20 +129,18 @@ class UserProfilePage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
                 ),
               ),
               SizedBox(height: 15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.phone, color: Colors.blueAccent),
+                  Icon(Icons.phone),
                   SizedBox(width: 8),
                   Text(
                     user.phoneNumber,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black54,
                     ),
                   ),
                 ],
@@ -161,7 +155,6 @@ class UserProfilePage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                backgroundColor: Colors.blueAccent,
                 padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               ),
             ],
@@ -191,7 +184,10 @@ class UserProfilePage extends StatelessWidget {
             icon: Icons.settings,
             title: 'Settings',
             onTap: () {
-              // Navigate to settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()),
+              );
             },
           ),
         ],
@@ -211,7 +207,7 @@ class UserProfilePage extends StatelessWidget {
       ),
       elevation: 3,
       child: ListTile(
-        leading: Icon(icon, color: Colors.blueAccent),
+        leading: Icon(icon),
         title: Text(
           title,
           style: TextStyle(
@@ -219,7 +215,7 @@ class UserProfilePage extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        trailing: Icon(Icons.arrow_forward_ios, color: Colors.black54, size: 16),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
       ),
     );

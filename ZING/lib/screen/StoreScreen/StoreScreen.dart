@@ -712,7 +712,7 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "\$${product.price.toStringAsFixed(2)}",
+                          "\RS ${product.price.toStringAsFixed(2)}",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

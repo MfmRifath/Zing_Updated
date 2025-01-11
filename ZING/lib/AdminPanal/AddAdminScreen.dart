@@ -23,7 +23,6 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Admin', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -79,7 +78,6 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -115,8 +113,8 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
       child: TextFormField(
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.blueAccent),
-          prefixIcon: Icon(icon, color: Colors.blueAccent),
+
+          prefixIcon: Icon(icon),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),

@@ -42,7 +42,7 @@ class _CartScreenState extends State<CartScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade900,
+
       ),
       body: FutureBuilder<void>(
         future: _fetchStoresFuture,
@@ -60,7 +60,7 @@ class _CartScreenState extends State<CartScreen> {
                   child: FadeIn(
                     child: Text(
                       'Your cart is empty.',
-                      style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 18),
                     ),
                   ),
                 );
@@ -130,13 +130,11 @@ class _CartScreenState extends State<CartScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.blue.shade900,
                           ),
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Price: \$${cartItem.price.toStringAsFixed(2)}',
-                          style: TextStyle(color: Colors.blue.shade700),
+                          'Price: \RS ${cartItem.price.toStringAsFixed(2)}',
                         ),
                         Text(
                           'Store: ${store.name}',
@@ -179,7 +177,6 @@ class _CartScreenState extends State<CartScreen> {
           },
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.blue.shade900,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
           child: Text(
@@ -201,7 +198,6 @@ class _CartScreenState extends State<CartScreen> {
           child: AlertDialog(
             title: Text(
               'Select Delivery Method',
-              style: TextStyle(color: Colors.blue.shade900),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,

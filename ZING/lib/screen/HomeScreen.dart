@@ -117,7 +117,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       children: [
                         Text('User not found'),
                         SpinKitFadingCircle(
-                          color: Colors.blueAccent,
+                          color: Colors.blue,
                           size: screenWidth * 0.2,
                         ),
                       ],
@@ -257,7 +257,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: screenWidth * 0.05,
-                    color: Colors.blueAccent,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.01),
@@ -278,7 +277,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: screenWidth * 0.05,
-                    color: Colors.blueAccent,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.01),
@@ -340,7 +338,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
           return Center(
             child: Text(
               'No offers available at the moment.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(fontSize: 16),
             ),
           );
         }
@@ -374,7 +372,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       return Center(child: CircularProgressIndicator());
                     },
                     errorBuilder: (context, error, stackTrace) {
-                      return Center(child: Icon(Icons.error, color: Colors.red));
+                      return Center(child: Icon(Icons.error));
                     },
                   ),
                 ),
@@ -406,7 +404,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
           return Center(
             child: Text(
               advertisementProvider.errorMessage,
-              style: TextStyle(fontSize: 16, color: Colors.red),
+              style: TextStyle(fontSize: 16, ),
             ),
           );
         }
@@ -415,7 +413,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
           return Center(
             child: Text(
               'No advertisements available.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(fontSize: 16),
             ),
           );
         }
@@ -450,55 +448,116 @@ class _HomePageScreenState extends State<HomePageScreen> {
     return SizedBox(
       height: isPortrait ? screenHeight * 0.15 : screenHeight * 0.25,
       child: ListView.builder(
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+        physics: BouncingScrollPhysics(),  // Adds bouncing scroll effect
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
-          final isSelected = _selectedCategory == categories[index];
+          final category = categories[index];
+          final isSelected = _selectedCategory == category;
 
           return FadeInLeft(
-            delay: Duration(milliseconds: 100 * index),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (isSelected) {
-                    _selectedCategory = null;
-                  } else {
-                    _selectedCategory = categories[index];
-                  }
-                });
-              },
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.03,
-                ),
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.02),  // Adjust border radius as needed
-                      child: Container(
-                        width: screenWidth * 0.16,
-                        height: screenWidth * 0.16,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(
-                                'assets/images/${categories[index].toLowerCase()}.jpg'),
-                            fit: BoxFit.cover,
-                          ),
+            delay: Duration(milliseconds: 50 * index),  // Faster animation
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
+              child: Hero(  // Add Hero animation for smooth transitions
+                tag: 'category_$category',
+                child: Material(  // Needed for Hero animation
+                  color: Colors.transparent,
+                  child: InkWell(  // Better touch feedback
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                    onTap: () {
+                      HapticFeedback.lightImpact();  // Add haptic feedback
+                      setState(() {
+                        if (isSelected) {
+                          _selectedCategory = null;
+                        } else {
+                          _selectedCategory = category;
+                        }
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      padding: EdgeInsets.all(screenWidth * 0.02),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                        boxShadow: isSelected ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          )
+                        ] : null,
+                        border: Border.all(
+                          color: isSelected ? Colors.blueAccent : Colors.transparent,
+                          width: 2,
                         ),
                       ),
-                    ),
-                    SizedBox(height: screenHeight * 0.01),
-                    Text(
-                      categories[index],
-                      style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: screenWidth * 0.04,
-                        color: isSelected ? Colors.blueAccent : Colors.black,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedContainer(
+                                duration: Duration(milliseconds: 200),
+                                width: screenWidth * 0.16,
+                                height: screenWidth * 0.16,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                                  border: Border.all(
+                                    color: isSelected ? Colors.blueAccent : Colors.grey.withOpacity(0.3),
+                                    width: 2,
+                                  ),
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                      'assets/images/${category.toLowerCase()}.jpg',
+                                    ),
+                                    fit: BoxFit.cover,
+                                    colorFilter: isSelected ? null : ColorFilter.mode(
+                                      Colors.grey.withOpacity(0.2),
+                                      BlendMode.saturation,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                Container(
+                                  width: screenWidth * 0.16,
+                                  height: screenWidth * 0.16,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                                    border: Border.all(
+                                      color: Colors.blueAccent,
+                                      width: 2,
+                                    ),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.blue.withOpacity(0.2),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          AnimatedDefaultTextStyle(
+                            duration: Duration(milliseconds: 200),
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontSize: screenWidth * 0.04,
+                              color: isSelected ? Colors.red : Colors.lightBlueAccent,
+                            ),
+                            child: Text(category),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -600,7 +659,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: Colors.grey[300],
                                   child: Icon(Icons.error, color: Colors.red),
                                 );
                               },
@@ -661,8 +719,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.black87,
-                                    Colors.black54,
+                                    Colors.white38,
+                                    Colors.white24,
                                   ],
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
@@ -681,7 +739,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.045,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
                                       letterSpacing: 0.5,
                                       shadows: [
                                         Shadow(
@@ -699,7 +756,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                     children: [
                                       Icon(
                                         Icons.star_rounded,
-                                        color: Colors.amber,
                                         size: screenWidth * 0.045,
                                       ),
                                       SizedBox(width: screenWidth * 0.01),
@@ -709,7 +765,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                           return Text(
                                             snapshot.data?.toStringAsFixed(1) ?? '0.0',
                                             style: TextStyle(
-                                              color: Colors.white,
                                               fontWeight: FontWeight.w500,
                                             ),
                                           );
@@ -1012,11 +1067,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 hintText: 'Search for products...',
                 hintStyle: TextStyle(
                   fontSize: screenWidth * 0.035,
-                  color: Colors.grey[600],
                 ),
                 prefixIcon: Icon(
                   Icons.search,
-                  color: Colors.indigoAccent,
+
                   size: screenWidth * 0.06,
                 ),
                 border: OutlineInputBorder(
@@ -1024,10 +1078,9 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey[200],
+
                 contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
               ),
-              cursorColor: Colors.indigoAccent,
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.toLowerCase();
@@ -1077,7 +1130,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                             'ZING',
                             style: TextStyle(
                               fontSize: screenWidth * 0.07,
-                              color: Colors.white,
+
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
                             ),
@@ -1086,7 +1139,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                             'Marketing Mastery',
                             style: TextStyle(
                               fontSize: screenWidth * 0.05,
-                              color: Colors.white,
+
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
                             ),
@@ -1240,7 +1293,7 @@ class ShimmerLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+
         borderRadius: BorderRadius.circular(20),
       ),
       child: Shimmer.fromColors(
@@ -1248,7 +1301,7 @@ class ShimmerLoading extends StatelessWidget {
         highlightColor: Colors.grey[100]!,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+
             borderRadius: BorderRadius.circular(20),
           ),
         ),

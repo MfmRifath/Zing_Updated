@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:provider/provider.dart';
 import '../../Modal/CoustomUser.dart';
 import '../../Service/StoreProvider.dart';
 
@@ -20,14 +21,12 @@ class CustomCarousel extends StatefulWidget {
 
 class _CustomCarouselState extends State<CustomCarousel> {
   int _currentIndex = 0;
-  late PageController _pageController;
   List<YoutubePlayerController>? _youtubeControllers;
   Store? _store;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
     _fetchStoreData();
   }
 
@@ -51,31 +50,12 @@ class _CustomCarouselState extends State<CustomCarousel> {
 
   @override
   void dispose() {
-    _pageController.dispose();
     if (_youtubeControllers != null) {
       for (var controller in _youtubeControllers!) {
         controller.dispose();
       }
     }
     super.dispose();
-  }
-
-  void _slideToNext() {
-    if (_currentIndex < (_youtubeControllers?.length ?? 0)) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _slideToPrevious() {
-    if (_currentIndex > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
@@ -111,68 +91,73 @@ class _CustomCarouselState extends State<CustomCarousel> {
             // Carousel
             FadeInUp(
               duration: Duration(milliseconds: 800),
-              child: Container(
-                height: 250.0,
-                margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) {
+              child: CarouselSlider.builder(
+                itemCount: mediaUrls.length,
+                itemBuilder: (context, index, realIndex) {
+                  String url = mediaUrls[index];
+
+                  if (index == 0) {
+                    // First slide: Store image
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(15.0),
+                      child: FadeInImage.assetNetwork(
+                        placeholder: 'assets/images/loading.jpg',
+                        image: url,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                    );
+                  } else if (_youtubeControllers != null && index - 1 < _youtubeControllers!.length) {
+                    return ZoomIn(
+                      duration: Duration(milliseconds: 800),
+                      child: YoutubePlayerBuilder(
+                        player: YoutubePlayer(
+                          controller: _youtubeControllers![index - 1],
+                          showVideoProgressIndicator: true,
+                          progressColors: const ProgressBarColors(
+                            playedColor: Colors.red,
+                            handleColor: Colors.redAccent,
+                          ),
+                          onReady: () {
+                            // Automatically handle fullscreen when needed
+                          },
+                        ),
+                        builder: (context, player) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  spreadRadius: 3,
+                                  blurRadius: 7,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15.0),
+                              child: Stack(
+                                children: [
+                                  player,
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+                options: CarouselOptions(
+                  height: 250.0,
+                  onPageChanged: (index, reason) {
                     setState(() {
                       _currentIndex = index;
                     });
                     widget.onPageChanged(index);
-                  },
-                  itemCount: mediaUrls.length,
-                  itemBuilder: (context, index) {
-                    String url = mediaUrls[index];
-
-                    if (index == 0) {
-                      // First slide: Store image
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(15.0),
-                        child: FadeInImage.assetNetwork(
-                          placeholder: 'assets/images/loading.jpg',
-                          image: url,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
-                      );
-                    } else if (_youtubeControllers != null && index - 1 < _youtubeControllers!.length) {
-                      return ZoomIn(
-                        duration: Duration(milliseconds: 800),
-                        child: YoutubePlayerBuilder(
-                          player: YoutubePlayer(
-                            controller: _youtubeControllers![index - 1],
-                            showVideoProgressIndicator: true,
-                            progressColors: const ProgressBarColors(
-                              playedColor: Colors.red,
-                              handleColor: Colors.redAccent,
-                            ),
-                          ),
-                          builder: (context, player) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
-                                    spreadRadius: 3,
-                                    blurRadius: 7,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(15.0),
-                                child: player,
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    } else {
-                      return const SizedBox();
-                    }
                   },
                 ),
               ),
@@ -184,52 +169,7 @@ class _CustomCarouselState extends State<CustomCarousel> {
             ),
           ],
         ),
-        // Navigation Buttons (Previous)
-        Positioned(
-          left: 10,
-          top: 100,
-          child: FadeInLeft(
-            duration: Duration(milliseconds: 800),
-            child: InkWell(
-              onTap: _slideToPrevious,
-              child: _buildNavButton(Icons.arrow_back_ios),
-            ),
-          ),
-        ),
-        // Navigation Buttons (Next)
-        Positioned(
-          right: 10,
-          top: 100,
-          child: FadeInRight(
-            duration: Duration(milliseconds: 800),
-            child: InkWell(
-              onTap: _slideToNext,
-              child: _buildNavButton(Icons.arrow_forward_ios),
-            ),
-          ),
-        ),
       ],
-    );
-  }
-
-  // Navigation button
-  Widget _buildNavButton(IconData icon) {
-    return Container(
-      height: 50,
-      width: 50,
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 7,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: Colors.white, size: 20),
     );
   }
 

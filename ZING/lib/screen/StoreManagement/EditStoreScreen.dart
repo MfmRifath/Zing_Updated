@@ -433,10 +433,10 @@ class _AddEditStoreDialogState extends State<AddEditStoreDialog> {
                                   title: Text('Admin Bank Details'),
                                   content: Text(
                                       'To complete get your store, please pay the registration fee to the following bank account:'
-                                          '\nBank: XYZ Bank'
-                                          '\nAccount Number: 123456789'
-                                          '\nAccount Name: Admin Name'
-                                          '\nBranch: XYZ Branch'
+                                          '\nBank: BOC BANK'
+                                          '\nAccount Number: 93597815'
+                                          '\nAccount Name: M.Z.M SHAHIL'
+                                          '\nBranch: Kolonnawa branch'
                                   ),
                                   actions: [
                                     TextButton(

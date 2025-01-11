@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:zing/Modal/CoustomUser.dart';
-import 'package:zing/Service/CoustomUserProvider.dart';
-import '../../Widgets/StoreManagementWidgets/BuildProductGride.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:zing/Widgets/StoreManagementWidgets/BuildProductGride.dart';
+
+import '../../Modal/CoustomUser.dart';
+import '../../Service/CoustomUserProvider.dart';
 import '../../Widgets/StoreManagementWidgets/BuildRenewScreen.dart';
 import '../../Widgets/StoreManagementWidgets/BuildStoreHeader.dart';
-import '../../Widgets/StoreManagementWidgets/OrederWidets.dart';
 import '../../Widgets/StoreManagementWidgets/buildAddProductButton.dart';
 import '../../Widgets/StoreManagementWidgets/buildAddStoreButton.dart';
 
@@ -23,11 +25,12 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
   bool _hasAccess = true;
   bool _showOrderManagement = false;
   late FirebaseFirestore _firestore;
+
   @override
   void initState() {
     super.initState();
-    fetchUserData();
     _firestore = FirebaseFirestore.instance;
+    fetchUserData();
   }
 
   Future<void> fetchUserData() async {
@@ -48,8 +51,7 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
 
   Future<void> fetchLatestPaymentAndCalculateDaysLeft(String userId) async {
     try {
-      final QuerySnapshot<Map<String, dynamic>> paymentSnapshot =
-      await FirebaseFirestore.instance
+      final paymentSnapshot = await _firestore
           .collection('users')
           .doc(userId)
           .collection('payments')
@@ -59,137 +61,175 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
 
       if (paymentSnapshot.docs.isNotEmpty) {
         final paymentData = paymentSnapshot.docs.first.data();
-        final Timestamp paymentDate = paymentData['paymentDate'];
-        DateTime currentDate = DateTime.now();
-        Duration difference = currentDate.difference(paymentDate.toDate());
-        _daysLeft = 30 - difference.inDays;
+        final paymentDate = (paymentData['paymentDate'] as Timestamp).toDate();
+        final currentDate = DateTime.now();
+        _daysLeft = 30 - currentDate.difference(paymentDate).inDays;
 
         if (_daysLeft <= 0) {
           _hasAccess = false;
-          _currentUser?.storeAccess =false;
+          _currentUser?.storeAccess = false;
         }
       } else {
         _hasAccess = false;
-        _currentUser?.storeAccess =false;
+        _currentUser?.storeAccess = false;
       }
     } catch (e) {
-      print("Error fetching latest payment: $e");
+      print("Error fetching payment data: $e");
       _hasAccess = false;
-      _currentUser?.storeAccess =false;
+      _currentUser?.storeAccess = false;
     }
   }
 
   Future<void> fetchProductsForStore(String storeId) async {
     try {
-      QuerySnapshot productSnapshot = await FirebaseFirestore.instance
+      final productSnapshot = await _firestore
           .collection('stores')
           .doc(storeId)
           .collection('products')
           .get();
 
-      List<Product> products = productSnapshot.docs.map((productDoc) {
-        Map<String, dynamic> productData = productDoc.data() as Map<String, dynamic>;
-        return Product(
-          id: productDoc.id,
-          name: productData['name'],
-          description: productData['description'],
-          price: productData['price'].toDouble(),
-          rating: productData['rating'].toDouble(),
-          imageUrl: productData['imageUrl'] ?? '',
-        );
-      }).toList();
-
       setState(() {
-        _products = products;
+        _products = productSnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Product(
+            id: doc.id,
+            name: data['name'],
+            description: data['description'],
+            price: data['price'].toDouble(),
+            rating: data['rating'].toDouble(),
+            imageUrl: data['imageUrl'] ?? '',
+          );
+        }).toList();
       });
     } catch (e) {
-      print('Error fetching products: $e');
+      print("Error fetching products: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_currentUser == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    if (_currentUser!.storeAccess == false) {
+    if (_isLoading) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.lock, size: 60, color: Colors.redAccent),
-            SizedBox(height: 10),
-            Text(
-              'Access Denied',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Only store owners can access this section.',
-              textAlign: TextAlign.center,
-            ),
-            if (_currentUser!.store == null) ...[
-              SizedBox(height: 20),
-              buildAddStoreButton(context), // Show Add Store Button for users without a store
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(width: 100, height: 100, color: Colors.grey[300]),
+              SizedBox(height: 16),
+              Container(width: 200, height: 20, color: Colors.grey[300]),
             ],
-            if (_hasAccess == false) ...[
-              SizedBox(height: 20),
-              buildRenewScreen(context, _currentUser!) // Show Add Store Button for users without a store
-            ],
-
-          ],
+          ),
         ),
       );
     }
 
-    if (_currentUser!.store == null) {
-      return buildAddStoreButton(context); // Add button for users with no store
+    if (_currentUser == null || !_currentUser!.storeAccess!) {
+      return _buildAccessDeniedScreen();
     }
 
-    return  _buildStoreManagementContent() ; // Renew screen if access expired
+    return _buildStoreManagementContent();
   }
+
+  Widget _buildAccessDeniedScreen() {
+    return Center(
+      child: Card(
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.lock, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                "Access Denied",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                "You don't have access to this section.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 24),
+              if (_currentUser?.store == null) buildAddStoreButton(context),
+              if (!_hasAccess) buildRenewScreen(context, _currentUser!),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStoreManagementContent() {
-    return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: 0.0),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Store Management"),
+      ),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-
             buildStoreHeader(_currentUser!.store!, _currentUser!, context),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _showOrderManagement = !_showOrderManagement;
-                  });
-                  if (_showOrderManagement) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OrderManagementPage(storeId: _currentUser!.store!.id!),
-                      ),
-                    );
-                  }
-                },
-                child: Text(_showOrderManagement ? 'Back to Store Management' : 'Manage Orders'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: buildAddProductButton(_currentUser!.store!, context),
-            ),
-            Card(
-              elevation: 1,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: buildProductGrid(_currentUser!.store!, _products, context),
-              ),
+            if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
+            _buildActionButtons(),
+            buildProductGrid(
+               _currentUser!.store!,
+              _products,
+               context,
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWarningBanner() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning, color: Colors.red),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "Your store access expires in $_daysLeft days. Renew now!",
+              style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => setState(() => _showOrderManagement = !_showOrderManagement),
+              child: Text(_showOrderManagement ? "Back to Store" : "Manage Orders"),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: buildAddProductButton(_currentUser!.store!, context),
+          ),
+        ],
       ),
     );
   }

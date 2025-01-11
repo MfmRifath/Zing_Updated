@@ -42,28 +42,28 @@ Widget buildRenewScreen(BuildContext context, CustomUser currentUser) {
                       children: [
                         Text('Bank Name:', style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(width: 8),
-                        Text('XYZ Bank'),
+                        Text('BOC BANK'),
                       ],
                     ),
                     Row(
                       children: [
                         Text('Account Name:', style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(width: 8),
-                        Text('John Doe'),
+                        Text('M.Z.M SHAHIL'),
                       ],
                     ),
                     Row(
                       children: [
                         Text('Account Number:', style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(width: 8),
-                        Text('1234567890'),
+                        Text('93597815'),
                       ],
                     ),
                     Row(
                       children: [
                         Text('Branch:', style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(width: 8),
-                        Text('Main Branch'),
+                        Text('Kolonnawa branch'),
                       ],
                     ),
                     SizedBox(height: 15),

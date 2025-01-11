@@ -22,11 +22,6 @@ class AdminPanelDashboard extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blueGrey.shade900, Colors.blueGrey.shade700],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         child: SingleChildScrollView(
@@ -160,7 +155,6 @@ class AdminPanelDashboard extends StatelessWidget {
       style: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.bold,
-        color: Colors.tealAccent,
       ),
     );
   }
@@ -168,12 +162,12 @@ class AdminPanelDashboard extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Row(
       children: [
-        Icon(Icons.dashboard, color: Colors.tealAccent, size: 24),
+        Icon(Icons.dashboard, size: 24),
         SizedBox(width: 10),
         Text(
           title,
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
@@ -193,7 +187,6 @@ class AdminPanelDashboard extends StatelessWidget {
       ),
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        backgroundColor: Colors.teal,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 8,
         shadowColor: Colors.black38,
@@ -215,7 +208,6 @@ class AdminPanelDashboard extends StatelessWidget {
     if (storeProvider.isLoading) {
       return Center(
         child: SpinKitFadingCircle(
-          color: Colors.tealAccent,
           size: 50.0,
         ),
       );
@@ -255,7 +247,6 @@ class AdminPanelDashboard extends StatelessWidget {
         );
       },
       child: Card(
-        color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -265,8 +256,8 @@ class AdminPanelDashboard extends StatelessWidget {
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           leading: CircleAvatar(
             radius: 25,
-            backgroundColor: Colors.tealAccent,
-            child: Icon(Icons.store, size: 28, color: Colors.white),
+
+            child: Icon(Icons.store, size: 28),
           ),
           title: Text(
             store.name,
@@ -280,7 +271,7 @@ class AdminPanelDashboard extends StatelessWidget {
             'Category: ${store.category}',
             style: TextStyle(color: Colors.black54, fontSize: 14),
           ),
-          trailing: Icon(Icons.arrow_forward_ios, size: 20, color: Colors.teal),
+          trailing: Icon(Icons.arrow_forward_ios, size: 20),
         ),
       ),
     );
@@ -302,7 +293,7 @@ class AdminPanelDashboard extends StatelessWidget {
       return Center(
         child: Text(
           'No admins found.',
-          style: TextStyle(color: Colors.white70, fontSize: 16),
+          style: TextStyle(fontSize: 16),
         ),
       );
     }
@@ -323,7 +314,6 @@ class AdminPanelDashboard extends StatelessWidget {
 
   Widget _buildAdminCard(CustomUser admin, BuildContext context) {
     return Card(
-      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -333,8 +323,7 @@ class AdminPanelDashboard extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         leading: CircleAvatar(
           radius: 25,
-          backgroundColor: Colors.tealAccent,
-          child: Icon(Icons.admin_panel_settings, size: 28, color: Colors.white),
+          child: Icon(Icons.admin_panel_settings, size: 28),
         ),
         title: Text(
           admin.name,
@@ -348,7 +337,7 @@ class AdminPanelDashboard extends StatelessWidget {
           'Email: ${admin.email}',
           style: TextStyle(color: Colors.black54, fontSize: 14),
         ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 20, color: Colors.teal),
+        trailing: Icon(Icons.arrow_forward_ios, size: 20),
       ),
     );
   }

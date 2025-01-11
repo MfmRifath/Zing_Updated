@@ -20,6 +20,7 @@ import 'Service/AdvertisementProvider.dart';
 import 'Service/ChatProvider.dart';
 import 'Service/OfferProvider.dart';
 import 'Service/OrderProvider.dart';
+import 'Service/ThameProvider.dart';
 
 Future<void> requestPermissions() async {
   try {
@@ -94,6 +95,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => OfferProvider()..fetchOffers()),
         ChangeNotifierProvider(create: (_) => AdvertisementProvider()..fetchAdvertisements()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const Zing(), // Add the const keyword in the correct place
     ),
@@ -104,8 +106,12 @@ class Zing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return SafeArea(
       child: MaterialApp(
+        themeMode: themeProvider.themeMode,
+        theme: themeProvider.lightTheme, // Light theme
+        darkTheme: themeProvider.darkTheme, // Dark theme
         debugShowCheckedModeBanner: false,
         color: Colors.white,
         home: AuthWrapper(),
