@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zing/Widgets/StoreManagementWidgets/BuildProductGride.dart';
+import 'package:zing/Widgets/StoreManagementWidgets/OrederWidets.dart';
 
 import '../../Modal/CoustomUser.dart';
 import '../../Service/CoustomUserProvider.dart';
@@ -176,13 +177,22 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Store Header
             buildStoreHeader(_currentUser!.store!, _currentUser!, context),
+
+            // Warning Banner if necessary
             if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
+
+            // Action Buttons for toggling views
             _buildActionButtons(),
-            buildProductGrid(
-               _currentUser!.store!,
+
+            // Conditional rendering of either Order Management or Store Page
+            _showOrderManagement
+                ? OrderManagementPage(storeId: _currentUser!.store!.id!)
+                : buildProductGrid(
+              _currentUser!.store!,
               _products,
-               context,
+              context,
             ),
           ],
         ),

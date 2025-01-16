@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CompanyNavDrawer extends StatelessWidget {
   @override
@@ -12,7 +13,7 @@ class CompanyNavDrawer extends StatelessWidget {
           DrawerHeader(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blueAccent, Colors.purpleAccent],
+                colors: [Colors.black, Colors.grey],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -70,35 +71,45 @@ class CompanyNavDrawer extends StatelessWidget {
 
           // Animated ListTiles for company details with improved UI
           _buildAnimatedListTile(
-            delay: 100,
-            icon: Icons.business,
-            title: 'Founder: John Doe',
-          ),
-          _buildAnimatedListTile(
-            delay: 200,
-            icon: Icons.location_on,
-            title: 'Address: 123 Main St, City, Country',
-          ),
-          _buildAnimatedListTile(
             delay: 300,
             icon: Icons.phone,
-            title: 'Phone: +123 456 789',
+            title: 'Phone: +94 76 673 789',
           ),
           _buildAnimatedListTile(
             delay: 400,
             icon: Icons.email,
-            title: 'Email: info@company.com',
+            title: 'Email: shahil@zingmarketingmastery.com',
           ),
+
+          // Website link
           _buildAnimatedListTile(
             delay: 500,
             icon: Icons.language,
-            title: 'Website: www.company.com',
+            title: 'Website',
+            onTap: () => _launchURL('https://zingmarketingmastery.com/'),
           ),
+
+          // TikTok link
+          _buildAnimatedListTile(
+            delay: 600,
+            icon: Icons.video_library,
+            title: 'TikTok: @company',
+            onTap: () => _launchURL('https://www.tiktok.com/@zing.official_?_t=8qi5IDOzsPg&_r=1'),
+          ),
+
+          // Instagram link
+          _buildAnimatedListTile(
+            delay: 700,
+            icon: Icons.camera_alt,
+            title: 'Instagram: @company',
+            onTap: () => _launchURL('https://www.instagram.com/zing_official.lk?igsh=ZnVxMXBnYnp1d2dy&utm_source=qr'),
+          ),
+
           Divider(),
 
           // About Us with a clear CTA
           _buildAnimatedListTile(
-            delay: 600,
+            delay: 800,
             icon: Icons.info_outline,
             title: 'About Us',
             onTap: () {
@@ -120,7 +131,7 @@ class CompanyNavDrawer extends StatelessWidget {
       delay: Duration(milliseconds: delay),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Colors.black,
           child: Icon(icon, color: Colors.white),
         ),
         title: Text(
@@ -139,5 +150,13 @@ class CompanyNavDrawer extends StatelessWidget {
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       ),
     );
+  }
+
+  void _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 
@@ -14,6 +15,7 @@ class FirebaseLoginScreen extends StatefulWidget {
 
 class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
   bool isPhoneSelected = false;
+  bool isTermsAccepted = false; // To track if terms are accepted
   final TextEditingController phoneController = TextEditingController(text: '+94 ');
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -21,6 +23,79 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   String? _verificationId;
+
+  // URL of Terms and Conditions
+  final String termsUrl = "https://zingmarketingmastery.com/"; // Replace with your actual Terms URL
+
+  // Open Terms and Conditions in Browser
+  Future<void> _launchTermsUrl() async {
+    if (await canLaunch(termsUrl)) {
+      await launch(termsUrl);
+    } else {
+      _showSnackBar("Unable to open Terms and Conditions URL.", isError: true);
+    }
+  }
+
+  // Show Terms and Conditions Dialog
+  void _showTermsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text("Terms and Conditions"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Please read and accept our Terms and Conditions before proceeding.",
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 10),
+            GestureDetector(
+              onTap: _launchTermsUrl,
+              child: Text(
+                "View Terms and Conditions",
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Close dialog
+            child: Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                isTermsAccepted = true;
+              });
+              Navigator.pop(context); // Close dialog
+            },
+            child: Text("Accept"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Check Terms and Conditions Before Login
+  void _checkTermsAndLogin() {
+    if (!isTermsAccepted) {
+      _showTermsDialog();
+      return;
+    }
+
+    if (isPhoneSelected) {
+      _loginWithPhoneNumber();
+    } else {
+      _loginWithEmail();
+    }
+  }
 
   // Google Sign-In
   Future<void> _googleSignIn() async {
@@ -71,15 +146,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
         _showSnackBar("Login Successful!");
         Navigator.pushNamed(context, '/home'); // Replace '/home' with your home route
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-          _showSnackBar("No user found for that email.", isError: true);
-        } else if (e.code == 'wrong-password') {
-          _showSnackBar("Incorrect password.", isError: true);
-        } else {
-          _showSnackBar(e.message ?? "Login failed.", isError: true);
-        }
-      } catch (e) {
-        _showSnackBar("Error: $e", isError: true);
+        _showSnackBar(e.message ?? "Login failed.", isError: true);
       } finally {
         setState(() => isLoading = false);
       }
@@ -220,8 +287,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                     ),
                   ),
                   Spacer(flex: 1),
-
-                  // Login Mode Toggle
                   Row(
                     children: [
                       Expanded(
@@ -270,8 +335,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                     ],
                   ),
                   SizedBox(height: 20),
-
-                  // Login Form
                   AnimatedSwitcher(
                     duration: Duration(milliseconds: 300),
                     child: isPhoneSelected
@@ -339,16 +402,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-
-                  // Submit Button
                   ElevatedButton(
-                    onPressed: () {
-                      if (isPhoneSelected) {
-                        _loginWithPhoneNumber();
-                      } else {
-                        _loginWithEmail();
-                      }
-                    },
+                    onPressed: _checkTermsAndLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade400,
                       shape: RoundedRectangleBorder(
@@ -360,8 +415,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                         : Text(isPhoneSelected ? "Request OTP" : "Login"),
                   ),
                   SizedBox(height: 20),
-
-                  // Google Login Button
                   ElevatedButton.icon(
                     onPressed: _googleSignIn,
                     icon: FaIcon(FontAwesomeIcons.google, color: Colors.red),
