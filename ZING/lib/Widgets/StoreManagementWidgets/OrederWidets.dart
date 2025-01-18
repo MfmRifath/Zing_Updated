@@ -67,9 +67,7 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   @override
   Widget build(BuildContext context) {
     print('Rendering OrderManagementPage for store: ${widget.storeId}');
-
     return Scaffold(
-      appBar: AppBar(title: Text('Customer Orders')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(  // Wrap the Column in SingleChildScrollView to handle overflow

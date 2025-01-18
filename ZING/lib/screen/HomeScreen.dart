@@ -16,6 +16,7 @@ import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 import 'package:zing/Service/StoreProvider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:zing/screen/CompanyNavDrawer.dart';
 import 'package:zing/screen/StoreManagement/storeManagementScreen.dart';
 import 'package:zing/screen/StoreScreen/StoreScreen.dart';
 import 'package:zing/screen/UserScreens/FavouriteStoreScreen.dart';
@@ -99,7 +100,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: _buildAppBar(screenWidth, screenHeight, userProvider),
-        drawer: _buildNavDrawer(screenHeight, screenWidth),
+        drawer: CompanyNavDrawer(),
         body: OrientationBuilder(
           builder: (context, orientation) {
             return FutureBuilder<CustomUser?>(
@@ -1093,125 +1094,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
     );
   }
 
-  Widget _buildNavDrawer(double screenHeight, double screenWidth) {
-    return Drawer(
-      child: Column(
-        children: <Widget>[
-          Container(
-            height: screenHeight * 0.3,
-            child: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/zing.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.3)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 20,
-                  left: 16,
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'ZING',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.07,
 
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          Text(
-                            'Marketing Mastery',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            '123 Business St, City',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.03,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildListTile(
-                  icon: Icons.business,
-                  title: 'Founder: John Doe',
-                  iconColor: Colors.blueAccent,
-                  screenWidth: screenWidth,
-                ),
-                _buildListTile(
-                  icon: Icons.phone,
-                  title: 'Phone: +123 456 7890',
-                  iconColor: Colors.green,
-                  screenWidth: screenWidth,
-                ),
-                _buildListTile(
-                  icon: Icons.email,
-                  title: 'Email: info@zingmarketing.com',
-                  iconColor: Colors.redAccent,
-                  screenWidth: screenWidth,
-                ),
-                _buildListTile(
-                  icon: Icons.language,
-                  title: 'Website: www.zingmarketingmastery.com',
-                  iconColor: Colors.purpleAccent,
-                  screenWidth: screenWidth,
-                ),
-                Divider(
-                  color: Colors.grey.shade400,
-                  thickness: 1,
-                  indent: screenWidth * 0.05,
-                  endIndent: screenWidth * 0.05,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Version 1.0.0',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: screenWidth * 0.03,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
   Widget _buildListTile({
     required IconData icon,
     required String title,

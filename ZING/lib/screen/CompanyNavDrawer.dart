@@ -23,7 +23,7 @@ class CompanyNavDrawer extends StatelessWidget {
               ),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Company Logo with subtle shadow
                 Container(
@@ -32,7 +32,7 @@ class CompanyNavDrawer extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: AssetImage('assets/company_logo.png'), // Your company logo path
+                      image: AssetImage('assets/images/zing.png'), // Your company logo path
                       fit: BoxFit.cover,
                     ),
                     boxShadow: [
@@ -48,21 +48,12 @@ class CompanyNavDrawer extends StatelessWidget {
                 SizedBox(height: 15),
                 // Company Name with increased font size
                 Text(
-                  'Company Name',
+                  'ZING',
                   style: TextStyle(
                     fontSize: 24,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
-                  ),
-                ),
-                SizedBox(height: 5),
-                // Company Address with lighter text
-                Text(
-                  'Company Address',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
                   ),
                 ),
               ],

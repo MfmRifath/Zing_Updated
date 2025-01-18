@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../Service/ThameProvider.dart';
-
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -119,6 +119,62 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _deleteAccount(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No user is logged in.')),
+      );
+      return;
+    }
+
+    // Show confirmation dialog
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to delete your account? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        // Delete user data from Firestore
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+
+        // Delete user authentication
+        await user.delete();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+
+        // Navigate to the login screen or exit
+        Navigator.of(context).pushReplacementNamed('/login');
+      } catch (e) {
+        String errorMessage = 'Error deleting account';
+        if (e.toString().contains('requires-recent-login')) {
+          errorMessage =
+          'Please log in again to delete your account. This is for your security.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -162,6 +218,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 FirebaseAuth.instance.signOut();
                 Navigator.of(context).pop();
               },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Delete Account'),
+              onTap: () => _deleteAccount(context),
             ),
           ],
         ),
