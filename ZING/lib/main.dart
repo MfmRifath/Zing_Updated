@@ -86,13 +86,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => StoreProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()..fetchGlobalRegistrationAmount()),
-        ChangeNotifierProvider(
-          create: (context) => ChatProvider(
-            userId: '',    // Temporary placeholder
-            storeId: '',   // Temporary placeholder
-            senderRole: '', // Temporary placeholder
-          ),
-        ),
+        ChangeNotifierProvider(create: (_) => ChatProvider(userId: '', storeId: '', senderRole: '')),
         ChangeNotifierProvider(create: (_) => OfferProvider()..fetchOffers()),
         ChangeNotifierProvider(create: (_) => AdvertisementProvider()..fetchAdvertisements()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
@@ -107,25 +101,24 @@ class Zing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    return SafeArea(
-      child: MaterialApp(
-        themeMode: themeProvider.themeMode,
-        theme: themeProvider.lightTheme, // Light theme
-        darkTheme: themeProvider.darkTheme, // Dark theme
-        debugShowCheckedModeBanner: false,
-        color: Colors.white,
-        home: AuthWrapper(),
-        routes: {
-          '/onboarding': (context) => OnboardingScreen(),
-          '/login': (context) => FirebaseLoginScreen(),
-          '/createAccount': (context) => CreateAccountScreen(), // assuming you have this already
-          '/home': (context) => HomePageScreen(),
-        },
-      ),
+    return MaterialApp(
+      themeMode: themeProvider.themeMode,
+      theme: themeProvider.lightTheme,
+      darkTheme: themeProvider.darkTheme,
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/auth',
+
+      routes: {
+        '/auth':(_) => AuthWrapper(),
+        '/splash': (_) => const SplashScreen(),
+        '/onboarding': (_) => OnboardingScreen(),
+        '/login': (_) => FirebaseLoginScreen(),
+        '/createAccount': (_) => CreateAccountScreen(),
+        '/home': (_) => HomePageScreen(),
+      },
     );
   }
 }
-
 // AuthWrapper to handle initial navigation based on login state
 class AuthWrapper extends StatelessWidget {
   @override
@@ -206,56 +199,58 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.black,
-              Colors.blue.shade900,
-              Colors.blue.shade700,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            stops: const [0.2, 0.6, 1.0], // Control color transitions
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black,
+                Colors.blue.shade900,
+                Colors.blue.shade700,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.2, 0.6, 1.0], // Control color transitions
+            ),
           ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Scale transition for the logo
-              ScaleTransition(
-                scale: _logoAnimation,
-                child: Image.asset(
-                  'assets/images/zing.png', // Replace with your logo path
-                  height: 200,
-                  width: 200,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Slide transition for the text
-              SlideTransition(
-                position: _textAnimation,
-                child: const Text(
-                  'Z I N G',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                    letterSpacing: 1.5,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Scale transition for the logo
+                ScaleTransition(
+                  scale: _logoAnimation,
+                  child: Image.asset(
+                    'assets/images/zing.png', // Replace with your logo path
+                    height: 200,
+                    width: 200,
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'MARKETING MASTERY',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white70,
-                  letterSpacing: 1.2,
+                const SizedBox(height: 20),
+                // Slide transition for the text
+                SlideTransition(
+                  position: _textAnimation,
+                  child: const Text(
+                    'Z I N G',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                const Text(
+                  'MARKETING MASTERY',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white70,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

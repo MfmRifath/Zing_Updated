@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../../Service/ThameProvider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -14,6 +17,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
 
+  bool isSendingCode = false;
   final _formKey = GlobalKey<FormState>();
   bool isPhoneSelected = false;
   String _selectedRole = 'User';
@@ -27,8 +31,22 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
     try {
       if (isPhoneSelected) {
+        final enteredNumber = phoneController.text.trim();
+
+        // Validate and prepend the +94 prefix
+        if (enteredNumber.isEmpty || !RegExp(r'^[1-9][0-9]{8}$').hasMatch(enteredNumber)) {
+          _showSnackbar('Invalid phone number. Enter 9 digits after +94.');
+          setState(() => isLoading = false);
+          return;
+        }
+
+        final formattedNumber = '+94$enteredNumber';
+        print('Formatted Phone Number: $formattedNumber');
+
+        setState(() => isSendingCode = true); // Show loader while sending the code
+
         await FirebaseAuth.instance.verifyPhoneNumber(
-          phoneNumber: phoneController.text.trim(),
+          phoneNumber: formattedNumber,
           verificationCompleted: (PhoneAuthCredential credential) async {
             final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
             await _saveUserToFirestore(userCredential.user!);
@@ -38,7 +56,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             _showSnackbar("Phone verification failed: ${e.message}");
           },
           codeSent: (String verificationId, int? resendToken) {
-            this.verificationId = verificationId;
+            setState(() {
+              this.verificationId = verificationId;
+              isSendingCode = false; // Hide loader after the code is sent
+            });
             _showOTPDialog();
           },
           codeAutoRetrievalTimeout: (String verificationId) {
@@ -58,7 +79,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     } catch (e) {
       _showSnackbar("Unexpected error: $e");
     } finally {
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        isSendingCode = false; // Ensure loader is hidden on error
+      });
     }
   }
 
@@ -123,204 +147,207 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     );
   }
 
-  Widget buildEmailFields() => Column(
-    children: [
-      TextFormField(
-        controller: emailController,
-        decoration: InputDecoration(
-          labelText: "Email Address",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+  Widget buildEmailFields() {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        TextFormField(
+          controller: emailController,
+          decoration: InputDecoration(
+            labelText: "Email Address",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || !value.contains('@')) {
+              return 'Enter a valid email';
+            }
+            return null;
+          },
         ),
-        keyboardType: TextInputType.emailAddress,
-        validator: (value) {
-          if (value == null || !value.contains('@')) {
-            return 'Enter a valid email';
-          }
-          return null;
-        },
-      ),
-      SizedBox(height: 20),
-      TextFormField(
-        controller: passwordController,
-        decoration: InputDecoration(
-          labelText: "Password",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+        SizedBox(height: 20),
+        TextFormField(
+          controller: passwordController,
+          decoration: InputDecoration(
+            labelText: "Password",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
+          obscureText: true,
+          validator: (value) {
+            if (value == null || value.length < 6) {
+              return 'Password must be at least 6 characters';
+            }
+            return null;
+          },
         ),
-        obscureText: true,
-        validator: (value) {
-          if (value == null || value.length < 6) {
-            return 'Password must be at least 6 characters';
-          }
-          return null;
-        },
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
-  Widget buildPhoneField() => TextFormField(
-    controller: phoneController,
-    decoration: InputDecoration(
-      labelText: "Phone Number",
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+  Widget buildPhoneField() {
+    final theme = Theme.of(context);
+    return TextFormField(
+      controller: phoneController,
+      decoration: InputDecoration(
+        labelText: "Phone Number",
+        prefixText: '+94 ',
+        prefixStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
-    ),
-    keyboardType: TextInputType.phone,
-    validator: (value) {
-      if (value == null || value.isEmpty || value.length < 10) {
-        return 'Enter a valid phone number';
-      }
-      return null;
-    },
-  );
+      keyboardType: TextInputType.phone,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Enter a valid phone number';
+        }
+        if (!RegExp(r'^[1-9][0-9]{8}$').hasMatch(value)) {
+          return 'Invalid format. Enter 9 digits after +94.';
+        }
+        return null;
+      },
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade300, Colors.blue.shade600],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+    final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              color: theme.scaffoldBackgroundColor,
             ),
-          ),
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 60),
-                  Text(
-                    "Welcome to Zing!",
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 60),
+                    Text(
+                      "Welcome to Zing!",
+                      style: theme.textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Create your account to explore amazing features.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
+                    SizedBox(height: 10),
+                    Text(
+                      "Create your account to explore amazing features.",
+                      style: theme.textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 40),
-                  Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: _selectedRole,
-                            onChanged: (String? newValue) {
-                              setState(() => _selectedRole = newValue!);
-                            },
-                            items: [
-                              DropdownMenuItem(value: 'User', child: Text("User")),
-                              DropdownMenuItem(value: 'Owner', child: Text("Owner")),
-                            ],
-                            decoration: InputDecoration(
-                              labelText: "Select Role",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                    SizedBox(height: 40),
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: theme.cardTheme.color,
+                        boxShadow: theme.cardTheme.shadowColor != null
+                            ? [
+                          BoxShadow(
+                            color: theme.cardTheme.shadowColor!,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ]
+                            : null,
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: _selectedRole,
+                              onChanged: (String? newValue) {
+                                setState(() => _selectedRole = newValue!);
+                              },
+                              items: [
+                                DropdownMenuItem(value: 'User', child: Text("User")),
+                                DropdownMenuItem(value: 'Owner', child: Text("Owner")),
+                              ],
+                              decoration: InputDecoration(
+                                labelText: "Select Role",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              TextButton(
-                                onPressed: () => setState(() => isPhoneSelected = false),
-                                child: Text(
-                                  "Use Email",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: !isPhoneSelected ? Colors.blue : Colors.grey,
+                            SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(
+                                  onPressed: () => setState(() => isPhoneSelected = false),
+                                  child: Text(
+                                    "Use Email",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: !isPhoneSelected ? theme.primaryColor : theme.disabledColor,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: () => setState(() => isPhoneSelected = true),
-                                child: Text(
-                                  "Use Phone",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: isPhoneSelected ? Colors.blue : Colors.grey,
+                                TextButton(
+                                  onPressed: () => setState(() => isPhoneSelected = true),
+                                  child: Text(
+                                    "Use Phone",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isPhoneSelected ? theme.primaryColor : theme.disabledColor,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          isPhoneSelected ? buildPhoneField() : buildEmailFields(),
-                          SizedBox(height: 30),
-                          ElevatedButton(
-                            onPressed: isLoading ? null : _createAccount,
-                            child: isLoading
-                                ? SpinKitFadingCircle(color: Colors.white, size: 20.0)
-                                : Text("Create Account"),
-                          ),
-                        ],
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                            isPhoneSelected ? buildPhoneField() : buildEmailFields(),
+                            SizedBox(height: 30),
+                            ElevatedButton(
+                              onPressed: isLoading || isSendingCode ? null : _createAccount,
+                              child: isLoading || isSendingCode
+                                  ? SpinKitFadingCircle(color: Colors.white, size: 20.0)
+                                  : Text("Create Account"),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "Already have an account? Log in",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        "Already have an account? Log in",
+                        style: theme.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (isLoading)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.6),
-                child: Center(
-                  child: SpinKitFadingCircle(
-                    color: Colors.white,
-                    size: 50.0,
-                  ),
+                  ],
                 ),
               ),
             ),
-        ],
+            if (isSendingCode)
+              Positioned.fill(
+                child: Container(
+                  color: theme.scaffoldBackgroundColor.withOpacity(0.6),
+                  child: Center(
+                    child: SpinKitFadingCircle(
+                      color: theme.primaryColor,
+                      size: 50.0,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

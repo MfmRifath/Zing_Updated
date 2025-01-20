@@ -34,6 +34,9 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"
                 />
+            <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="1:685215974205:android:382cf5dcbd774cfa267b54" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -46,6 +49,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
 
     <!-- Required to query activities that can process text, see:

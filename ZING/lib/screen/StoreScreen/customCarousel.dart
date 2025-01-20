@@ -61,10 +61,12 @@ class _CustomCarouselState extends State<CustomCarousel> {
   @override
   Widget build(BuildContext context) {
     if (_store == null || _youtubeControllers == null) {
-      return Center(
-        child: Spin(
-          duration: Duration(seconds: 1),
-          child: const CircularProgressIndicator(color: Colors.blue),
+      return SafeArea(
+        child: Center(
+          child: Spin(
+            duration: Duration(seconds: 1),
+            child: const CircularProgressIndicator(color: Colors.blue),
+          ),
         ),
       );
     }

@@ -27,34 +27,34 @@ class StoreProvider with ChangeNotifier {
 
 
   /// Fetch stores from Firestore
-  /// Fetch stores from Firestore
   Future<void> fetchStores() async {
     isLoading = true;
-    notifyListeners();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners(); // Notify after the current frame
+    });
 
     try {
       QuerySnapshot storeSnapshot = await FirebaseFirestore.instance.collection('stores').get();
-      print('Number of store documents fetched: ${storeSnapshot.docs.length}'); // Log the number of docs fetched
-
-      if (storeSnapshot.docs.isEmpty) {
-        print('No stores found in Firestore.');
-      }
 
       _stores = await Future.wait(storeSnapshot.docs.map((doc) async {
-        print('Store doc data: ${doc.data()}'); // Print each document's data
         return await _storeFromFirestore(doc);
       }).toList());
 
-      print('Stores fetched successfully: $_stores');
       isLoading = false;
-      notifyListeners();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners(); // Notify after fetching completes
+      });
     } catch (e) {
       print('Error fetching stores: $e');
       isLoading = false;
-      notifyListeners();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners(); // Notify even if an error occurs
+      });
     }
   }
-
 
   Future<List<Product>> fetchProductsForStore(String storeId) async {
     // Fetch products from the "products" sub-collection under the store

@@ -67,24 +67,26 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   @override
   Widget build(BuildContext context) {
     print('Rendering OrderManagementPage for store: ${widget.storeId}');
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(  // Wrap the Column in SingleChildScrollView to handle overflow
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Customer Orders',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey.shade900,
+    return SafeArea(
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(  // Wrap the Column in SingleChildScrollView to handle overflow
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Customer Orders',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey.shade900,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20),
-              _buildOrderList(),
-            ],
+                SizedBox(height: 20),
+                _buildOrderList(),
+              ],
+            ),
           ),
         ),
       ),

@@ -170,31 +170,30 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
   }
 
   Widget _buildStoreManagementContent() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Store Management"),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Store Header
-            buildStoreHeader(_currentUser!.store!, _currentUser!, context),
+    return SafeArea(
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Store Header
+              buildStoreHeader(_currentUser!.store!, _currentUser!, context),
 
-            // Warning Banner if necessary
-            if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
+              // Warning Banner if necessary
+              if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
 
-            // Action Buttons for toggling views
-            _buildActionButtons(),
+              // Action Buttons for toggling views
+              _buildActionButtons(),
 
-            // Conditional rendering of either Order Management or Store Page
-            _showOrderManagement
-                ? OrderManagementPage(storeId: _currentUser!.store!.id!)
-                : buildProductGrid(
-              _currentUser!.store!,
-              _products,
-              context,
-            ),
-          ],
+              // Conditional rendering of either Order Management or Store Page
+              _showOrderManagement
+                  ? OrderManagementPage(storeId: _currentUser!.store!.id!)
+                  : buildProductGrid(
+                _currentUser!.store!,
+                _products,
+                context,
+              ),
+            ],
+          ),
         ),
       ),
     );

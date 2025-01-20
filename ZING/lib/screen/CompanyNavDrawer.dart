@@ -5,109 +5,111 @@ import 'package:url_launcher/url_launcher.dart';
 class CompanyNavDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          // Drawer Header with gradient and logo
-          DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.black, Colors.grey],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+    return SafeArea(
+      child: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            // Drawer Header with gradient and logo
+            DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.black, Colors.grey],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
               ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Company Logo with subtle shadow
-                Container(
-                  height: 70,
-                  width: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/zing.png'), // Your company logo path
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 6,
-                        offset: Offset(0, 3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Company Logo with subtle shadow
+                  Container(
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/zing.png'), // Your company logo path
+                        fit: BoxFit.cover,
                       ),
-                    ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 15),
-                // Company Name with increased font size
-                Text(
-                  'ZING',
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
+                  SizedBox(height: 15),
+                  // Company Name with increased font size
+                  Text(
+                    'ZING',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Animated ListTiles for company details with improved UI
-          _buildAnimatedListTile(
-            delay: 300,
-            icon: Icons.phone,
-            title: 'Phone: +94 76 673 789',
-          ),
-          _buildAnimatedListTile(
-            delay: 400,
-            icon: Icons.email,
-            title: 'Email: shahil@zingmarketingmastery.com',
-          ),
+            // Animated ListTiles for company details with improved UI
+            _buildAnimatedListTile(
+              delay: 300,
+              icon: Icons.phone,
+              title: 'Phone: +94 76 673 789',
+            ),
+            _buildAnimatedListTile(
+              delay: 400,
+              icon: Icons.email,
+              title: 'Email: shahil@zingmarketingmastery.com',
+            ),
 
-          // Website link
-          _buildAnimatedListTile(
-            delay: 500,
-            icon: Icons.language,
-            title: 'Website',
-            onTap: () => _launchURL('https://zingmarketingmastery.com/'),
-          ),
+            // Website link
+            _buildAnimatedListTile(
+              delay: 500,
+              icon: Icons.language,
+              title: 'Website',
+              onTap: () => _launchURL('https://zingmarketingmastery.com/'),
+            ),
 
-          // TikTok link
-          _buildAnimatedListTile(
-            delay: 600,
-            icon: Icons.video_library,
-            title: 'TikTok: @company',
-            onTap: () => _launchURL('https://www.tiktok.com/@zing.official_?_t=8qi5IDOzsPg&_r=1'),
-          ),
+            // TikTok link
+            _buildAnimatedListTile(
+              delay: 600,
+              icon: Icons.video_library,
+              title: 'TikTok: @company',
+              onTap: () => _launchURL('https://www.tiktok.com/@zing.official_?_t=8qi5IDOzsPg&_r=1'),
+            ),
 
-          // Instagram link
-          _buildAnimatedListTile(
-            delay: 700,
-            icon: Icons.camera_alt,
-            title: 'Instagram: @company',
-            onTap: () => _launchURL('https://www.instagram.com/zing_official.lk?igsh=ZnVxMXBnYnp1d2dy&utm_source=qr'),
-          ),
+            // Instagram link
+            _buildAnimatedListTile(
+              delay: 700,
+              icon: Icons.camera_alt,
+              title: 'Instagram: @company',
+              onTap: () => _launchURL('https://www.instagram.com/zing_official.lk?igsh=ZnVxMXBnYnp1d2dy&utm_source=qr'),
+            ),
 
-          Divider(),
+            Divider(),
 
-          // About Us with a clear CTA
-          _buildAnimatedListTile(
-            delay: 800,
-            icon: Icons.info_outline,
-            title: 'About Us',
-            onTap: () {
-              // Navigate to About Us page
-            },
-          ),
-        ],
+            // About Us with a clear CTA
+            _buildAnimatedListTile(
+              delay: 800,
+              icon: Icons.info_outline,
+              title: 'About Us',
+              onTap: () {
+                // Navigate to About Us page
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -59,90 +59,92 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final cart = Provider.of<CartProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
-    return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        title: Text(
-          widget.product.name,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.blue.shade50,
+        appBar: AppBar(
+          title: Text(
+            widget.product.name,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          ),
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: Colors.blue.shade900,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white),
         ),
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Colors.blue.shade900,
-        iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(color: Colors.white),
-      ),
-      body: isLoading
-          ? Center(
-        child: SpinKitFadingCircle(
-          color: Colors.blueAccent,
-          size: 60.0,
-        ),
-      )
-          : errorMessage != null
-          ? Center(child: Text(errorMessage!))
-          : currentUser == null
-          ? Center(child: Text('No user found'))
-          : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Animated Product Image
-              FadeIn(
-                duration: Duration(milliseconds: 800),
-                child: _buildProductImage(),
-              ),
-              SizedBox(height: 20),
+        body: isLoading
+            ? Center(
+          child: SpinKitFadingCircle(
+            color: Colors.blueAccent,
+            size: 60.0,
+          ),
+        )
+            : errorMessage != null
+            ? Center(child: Text(errorMessage!))
+            : currentUser == null
+            ? Center(child: Text('No user found'))
+            : SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Animated Product Image
+                FadeIn(
+                  duration: Duration(milliseconds: 800),
+                  child: _buildProductImage(),
+                ),
+                SizedBox(height: 20),
 
-              // Product Name and Price
-              FadeInLeft(
-                duration: Duration(milliseconds: 800),
-                child: _buildProductDetails(),
-              ),
-              SizedBox(height: 20),
+                // Product Name and Price
+                FadeInLeft(
+                  duration: Duration(milliseconds: 800),
+                  child: _buildProductDetails(),
+                ),
+                SizedBox(height: 20),
 
-              // Product Description
-              FadeInRight(
-                duration: Duration(milliseconds: 800),
-                child: _buildSection("Description", widget.product.description ?? "No description available."),
-              ),
-              SizedBox(height: 30),
+                // Product Description
+                FadeInRight(
+                  duration: Duration(milliseconds: 800),
+                  child: _buildSection("Description", widget.product.description ?? "No description available."),
+                ),
+                SizedBox(height: 30),
 
-              // Action Buttons with Animation
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Bounce(
-                    duration: Duration(milliseconds: 800),
-                    child: _buildActionButton(
-                      label: "Add to Cart",
-                      icon: Icons.add_shopping_cart,
-                      color: Colors.blue.shade700,
-                      onPressed: () {
-                        cart.addItem(widget.product, context);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("${widget.product.name} added to cart!"),
-                          duration: Duration(seconds: 2),
-                        ));
-                      },
+                // Action Buttons with Animation
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Bounce(
+                      duration: Duration(milliseconds: 800),
+                      child: _buildActionButton(
+                        label: "Add to Cart",
+                        icon: Icons.add_shopping_cart,
+                        color: Colors.blue.shade700,
+                        onPressed: () {
+                          cart.addItem(widget.product, context);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("${widget.product.name} added to cart!"),
+                            duration: Duration(seconds: 2),
+                          ));
+                        },
+                      ),
                     ),
-                  ),
-                  Bounce(
-                    duration: Duration(milliseconds: 800),
-                    child: _buildActionButton(
-                      label: "Order Now",
-                      icon: Icons.shopping_bag,
-                      color: Colors.blue.shade900,
-                      onPressed: () async {
-                        await _showDeliveryMethodDialog(context, currentUser!, orderProvider);
-                      },
+                    Bounce(
+                      duration: Duration(milliseconds: 800),
+                      child: _buildActionButton(
+                        label: "Order Now",
+                        icon: Icons.shopping_bag,
+                        color: Colors.blue.shade900,
+                        onPressed: () async {
+                          await _showDeliveryMethodDialog(context, currentUser!, orderProvider);
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

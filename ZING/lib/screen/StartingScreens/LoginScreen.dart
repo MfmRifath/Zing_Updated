@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zing/Modal/CoustomUser.dart';
 import 'package:zing/Service/CoustomUserProvider.dart';
 
+
 class FirebaseLoginScreen extends StatefulWidget {
   @override
   _FirebaseLoginScreenState createState() => _FirebaseLoginScreenState();
@@ -25,9 +26,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
   String? _verificationId;
 
   // URL of Terms and Conditions
-  final String termsUrl = "https://zingmarketingmastery.com/"; // Replace with your actual Terms URL
+  final String termsUrl = "https://mfmrifath.github.io/Zing-Terms-and-Conditions/"; // Replace with your actual Terms URL
 
-  // Open Terms and Conditions in Browser
   Future<void> _launchTermsUrl() async {
     if (await canLaunch(termsUrl)) {
       await launch(termsUrl);
@@ -36,8 +36,9 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     }
   }
 
-  // Show Terms and Conditions Dialog
+  // Show Terms Dialog
   void _showTermsDialog() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -48,7 +49,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
           children: [
             Text(
               "Please read and accept our Terms and Conditions before proceeding.",
-              style: TextStyle(fontSize: 16),
+              style: theme.textTheme.bodyMedium,
             ),
             SizedBox(height: 10),
             GestureDetector(
@@ -56,7 +57,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
               child: Text(
                 "View Terms and Conditions",
                 style: TextStyle(
-                  color: Colors.blue,
+                  color: theme.primaryColor,
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.underline,
                 ),
@@ -66,15 +67,15 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // Close dialog
-            child: Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: theme.textTheme.bodyLarge),
           ),
           ElevatedButton(
             onPressed: () {
               setState(() {
                 isTermsAccepted = true;
               });
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context);
             },
             child: Text("Accept"),
           ),
@@ -83,7 +84,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     );
   }
 
-  // Check Terms and Conditions Before Login
   void _checkTermsAndLogin() {
     if (!isTermsAccepted) {
       _showTermsDialog();
@@ -97,7 +97,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     }
   }
 
-  // Google Sign-In
   Future<void> _googleSignIn() async {
     final userProvider = Provider.of<CustomUserProvider>(context, listen: false);
 
@@ -125,8 +124,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
         }
 
         _showSnackBar("Google Sign-In Successful!");
-
-        // Navigate to the /home route
         Navigator.pushNamed(context, '/home');
       }
     } catch (e) {
@@ -134,7 +131,6 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     }
   }
 
-  // Email/Password Login
   Future<void> _loginWithEmail() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => isLoading = true);
@@ -144,7 +140,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
           password: passwordController.text.trim(),
         );
         _showSnackBar("Login Successful!");
-        Navigator.pushNamed(context, '/home'); // Replace '/home' with your home route
+        Navigator.pushNamed(context, '/home');
       } on FirebaseAuthException catch (e) {
         _showSnackBar(e.message ?? "Login failed.", isError: true);
       } finally {
@@ -153,8 +149,9 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     }
   }
 
-  // Phone Number Login
   Future<void> _loginWithPhoneNumber() async {
+    final theme = Theme.of(context);
+
     if (phoneController.text.isEmpty || !phoneController.text.startsWith('+94')) {
       _showSnackBar("Enter a valid phone number starting with +94", isError: true);
       return;
@@ -167,7 +164,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
         verificationCompleted: (PhoneAuthCredential credential) async {
           await _auth.signInWithCredential(credential);
           _showSnackBar("Phone Login Successful!");
-          Navigator.pushNamed(context, '/home'); // Replace '/home' with your home route
+          Navigator.pushNamed(context, '/home');
         },
         verificationFailed: (FirebaseAuthException e) {
           _showSnackBar(e.message ?? "Phone login failed.", isError: true);
@@ -188,8 +185,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
       setState(() => isLoading = false);
     }
   }
-
-  // OTP Dialog for Phone Number Login
+// OTP Dialog for Phone Number Login
   void _showOTPDialog() {
     String otpCode = "";
     showDialog(
@@ -231,13 +227,11 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
       ),
     );
   }
-
-  // Snackbar for Feedback
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.redAccent : Colors.green,
+        backgroundColor: isError ? Colors.red : Theme.of(context).primaryColor,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 3),
       ),
@@ -246,47 +240,40 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade50, Colors.blue.shade100, Colors.blue.shade300],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Padding(
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SingleChildScrollView(
+          child: Container(
+            height: MediaQuery.of(context).size.height,
             padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Spacer(flex: 2),
+                  Spacer(flex: 1),
+                  // Logo at the top
                   FadeInDown(
-                    child: Text(
-                      "Welcome Back!",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: Image.asset(
+                      'assets/images/zing.png', // Replace with your logo's asset path
+                      height: 120,
                     ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    "Welcome Back!",
+                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 10),
-                  FadeInDown(
-                    delay: Duration(milliseconds: 300),
-                    child: Text(
-                      "Login to your account",
-                      style: TextStyle(fontSize: 18, color: Colors.blue.shade700),
-                      textAlign: TextAlign.center,
-                    ),
+                  Text(
+                    "Login to your account",
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
                   ),
-                  Spacer(flex: 1),
+                  SizedBox(height: 30),
                   Row(
                     children: [
                       Expanded(
@@ -295,14 +282,18 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: isPhoneSelected ? Colors.blue.shade300 : Colors.transparent,
+                              color: isPhoneSelected
+                                  ? theme.colorScheme.primary.withOpacity(0.2)
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
                               child: Text(
                                 "Phone Number",
                                 style: TextStyle(
-                                  color: isPhoneSelected ? Colors.black : Colors.blue.shade700,
+                                  color: isPhoneSelected
+                                      ? theme.colorScheme.onPrimary
+                                      : theme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -317,14 +308,18 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: !isPhoneSelected ? Colors.blue.shade300 : Colors.transparent,
+                              color: !isPhoneSelected
+                                  ? theme.colorScheme.primary.withOpacity(0.2)
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
                               child: Text(
                                 "Email",
                                 style: TextStyle(
-                                  color: !isPhoneSelected ? Colors.black : Colors.blue.shade700,
+                                  color: !isPhoneSelected
+                                      ? theme.colorScheme.onPrimary
+                                      : theme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -342,10 +337,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                       key: ValueKey("phone"),
                       controller: phoneController,
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.phone, color: Colors.blue),
+                        prefixIcon: Icon(Icons.phone, color: theme.primaryColor),
                         labelText: "Phone Number",
-                        filled: true,
-                        fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -363,10 +356,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                         TextFormField(
                           controller: emailController,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email, color: Colors.blue),
+                            prefixIcon: Icon(Icons.email, color: theme.primaryColor),
                             labelText: "Email",
-                            filled: true,
-                            fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -383,10 +374,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                           controller: passwordController,
                           obscureText: true,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock, color: Colors.blue),
+                            prefixIcon: Icon(Icons.lock, color: theme.primaryColor),
                             labelText: "Password",
-                            filled: true,
-                            fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -404,14 +393,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _checkTermsAndLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade400,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
+                        ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
                         : Text(isPhoneSelected ? "Request OTP" : "Login"),
                   ),
                   SizedBox(height: 20),
@@ -419,14 +402,22 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                     onPressed: _googleSignIn,
                     icon: FaIcon(FontAwesomeIcons.google, color: Colors.red),
                     label: Text("Login with Google"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  ),
+                  Spacer(flex: 1),
+                  // Create account button at the bottom
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/createAccount');
+                    },
+                    child: Text(
+                      "Don't have an account? Create one",
+                      style: TextStyle(
+                        color: theme.primaryColor,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  Spacer(flex: 2),
+                  Spacer(flex: 1),
                 ],
               ),
             ),

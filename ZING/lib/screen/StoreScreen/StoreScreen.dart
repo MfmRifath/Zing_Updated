@@ -790,30 +790,32 @@ class FullScreenMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Full Screen Map"),
-        backgroundColor: Colors.blue.shade900,
-      ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: storeLocation,
-          zoom: 14,
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Full Screen Map"),
+          backgroundColor: Colors.blue.shade900,
         ),
-        polylines: polylines,
-        markers: {
-          Marker(
-            markerId: MarkerId("store"),
-            position: storeLocation,
-            infoWindow: InfoWindow(title: "Store Location"),
+        body: GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: storeLocation,
+            zoom: 14,
           ),
-          if (userPosition != null)
+          polylines: polylines,
+          markers: {
             Marker(
-              markerId: MarkerId("user"),
-              position: LatLng(userPosition!.latitude, userPosition!.longitude),
-              infoWindow: InfoWindow(title: "Your Location"),
+              markerId: MarkerId("store"),
+              position: storeLocation,
+              infoWindow: InfoWindow(title: "Store Location"),
             ),
-        },
+            if (userPosition != null)
+              Marker(
+                markerId: MarkerId("user"),
+                position: LatLng(userPosition!.latitude, userPosition!.longitude),
+                infoWindow: InfoWindow(title: "Your Location"),
+              ),
+          },
+        ),
       ),
     );
   }

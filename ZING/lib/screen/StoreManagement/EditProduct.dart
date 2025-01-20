@@ -92,153 +92,155 @@ class _EditProductScreenState extends State<EditProductScreen> {
     final storeProvider = Provider.of<StoreProvider>(context, listen: false);
     final userProvider = Provider.of<CustomUserProvider>(context, listen: false);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.product != null ? 'Edit Product' : 'Add Product'),
-        backgroundColor: Colors.blueAccent,
-        centerTitle: true,
-        elevation: 4.0,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTextField(nameController, 'Product Name', TextInputType.text),
-              SizedBox(height: 16),
-              _buildTextField(priceController, 'Price', TextInputType.numberWithOptions(decimal: true)),
-              SizedBox(height: 16),
-              _buildTextField(descriptionController, 'Description', TextInputType.text),
-              SizedBox(height: 16),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.product != null ? 'Edit Product' : 'Add Product'),
+          backgroundColor: Colors.blueAccent,
+          centerTitle: true,
+          elevation: 4.0,
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildTextField(nameController, 'Product Name', TextInputType.text),
+                SizedBox(height: 16),
+                _buildTextField(priceController, 'Price', TextInputType.numberWithOptions(decimal: true)),
+                SizedBox(height: 16),
+                _buildTextField(descriptionController, 'Description', TextInputType.text),
+                SizedBox(height: 16),
 
-              // Image picker and preview section
-              Text(
-                'Product Image',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[700]),
-              ),
-              SizedBox(height: 10),
-              GestureDetector(
-                onTap: _pickImageFromGallery,
-                child: Container(
-                  height: 150,
-                  width: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      _selectedImage!,
-                      fit: BoxFit.cover,
+                // Image picker and preview section
+                Text(
+                  'Product Image',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 10),
+                GestureDetector(
+                  onTap: _pickImageFromGallery,
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
                     ),
-                  )
-                      : (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      _uploadedImageUrl!,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_a_photo, size: 40, color: Colors.grey[500]),
-                      Text(
-                        'Tap to Add Image',
-                        style: TextStyle(color: Colors.grey[500]),
+                    child: _selectedImage != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        _selectedImage!,
+                        fit: BoxFit.cover,
                       ),
-                    ],
+                    )
+                        : (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _uploadedImageUrl!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo, size: 40, color: Colors.grey[500]),
+                        Text(
+                          'Tap to Add Image',
+                          style: TextStyle(color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              SizedBox(height: 30),
+                SizedBox(height: 30),
 
-              // Upload button or progress indicator
-              _isUploading
-                  ? Center(child: SpinKitFadingCircle(
-                color: Colors.blueAccent,
-                size: 60.0,
-              ),)
-                  : ElevatedButton.icon(
-                icon: Icon(Icons.save),
-                label: Text(widget.product != null ? 'Save Changes' : 'Add Product'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  textStyle: TextStyle(fontSize: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  backgroundColor: Colors.blueAccent,
-                ),
-                onPressed: () async {
-                  try {
-                    if (_selectedImage != null) {
-                      // Upload the selected image and get the download URL
-                      _uploadedImageUrl = await _uploadImage(_selectedImage!);
-                    }
+                // Upload button or progress indicator
+                _isUploading
+                    ? Center(child: SpinKitFadingCircle(
+                  color: Colors.blueAccent,
+                  size: 60.0,
+                ),)
+                    : ElevatedButton.icon(
+                  icon: Icon(Icons.save),
+                  label: Text(widget.product != null ? 'Save Changes' : 'Add Product'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    textStyle: TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: Colors.blueAccent,
+                  ),
+                  onPressed: () async {
+                    try {
+                      if (_selectedImage != null) {
+                        // Upload the selected image and get the download URL
+                        _uploadedImageUrl = await _uploadImage(_selectedImage!);
+                      }
 
-                    final productName = nameController.text.trim();
-                    final price = double.tryParse(priceController.text.trim()) ?? 0.0;
-                    final description = descriptionController.text.trim();
-                    final rating = double.tryParse(ratingController.text.trim()) ?? 0.0;
+                      final productName = nameController.text.trim();
+                      final price = double.tryParse(priceController.text.trim()) ?? 0.0;
+                      final description = descriptionController.text.trim();
+                      final rating = double.tryParse(ratingController.text.trim()) ?? 0.0;
 
-                    if (productName.isEmpty || price <= 0 || rating < 0) {
+                      if (productName.isEmpty || price <= 0 || rating < 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please fill all fields with valid values')),
+                        );
+                        return;
+                      }
+
+                      // Set default placeholder URL if no image is uploaded
+                      String imageUrlToUse = _uploadedImageUrl?.isNotEmpty == true
+                          ? _uploadedImageUrl!
+                          : 'https://via.placeholder.com/150';  // Placeholder image URL
+
+                      if (widget.product != null) {
+                        // Edit existing product
+                        storeProvider.editProduct(
+                          widget.storeId,
+                          Product(
+                            id: widget.product!.id,
+                            name: productName,
+                            price: price,
+                            description: description,
+                            rating: rating,
+                            imageUrl: imageUrlToUse,
+                            isAvailable: widget.product!.isAvailable,
+                          ),
+                          userProvider,
+                        );
+                      } else {
+                        // Add new product
+                        storeProvider.addProduct(
+                          widget.storeId,
+                          Product(
+                            id: '',
+                            name: productName,
+                            price: price,
+                            description: description,
+                            rating: rating,
+                            imageUrl: imageUrlToUse,  // Use the placeholder image URL if necessary
+                          ),
+                          userProvider,
+                          context,
+                        );
+                      }
+
+                      Navigator.of(context).pop(); // Return to the previous screen
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please fill all fields with valid values')),
-                      );
-                      return;
-                    }
-
-                    // Set default placeholder URL if no image is uploaded
-                    String imageUrlToUse = _uploadedImageUrl?.isNotEmpty == true
-                        ? _uploadedImageUrl!
-                        : 'https://via.placeholder.com/150';  // Placeholder image URL
-
-                    if (widget.product != null) {
-                      // Edit existing product
-                      storeProvider.editProduct(
-                        widget.storeId,
-                        Product(
-                          id: widget.product!.id,
-                          name: productName,
-                          price: price,
-                          description: description,
-                          rating: rating,
-                          imageUrl: imageUrlToUse,
-                          isAvailable: widget.product!.isAvailable,
-                        ),
-                        userProvider,
-                      );
-                    } else {
-                      // Add new product
-                      storeProvider.addProduct(
-                        widget.storeId,
-                        Product(
-                          id: '',
-                          name: productName,
-                          price: price,
-                          description: description,
-                          rating: rating,
-                          imageUrl: imageUrlToUse,  // Use the placeholder image URL if necessary
-                        ),
-                        userProvider,
-                        context,
+                        SnackBar(content: Text('An error occurred: ${e.toString()}')),
                       );
                     }
-
-                    Navigator.of(context).pop(); // Return to the previous screen
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('An error occurred: ${e.toString()}')),
-                    );
-                  }
-                },
-              ),
-            ],
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
