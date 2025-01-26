@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:zing/Chat/ChatsScreen.dart';
+
 import 'package:zing/Modal/CoustomUser.dart';
+import 'package:zing/Service/StoreProvider.dart';
 import 'package:zing/screen/StoreScreen/ProductDetailsScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,6 +34,8 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
   double _currentRating = 0;
   bool _hasRated = false;
   double _averageRating = 0;
+
+
 
   @override
   void initState() {
@@ -222,7 +225,9 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+  return Scaffold(
+
       backgroundColor: Color(0xFFF0F0E4),
       appBar: AppBar(
         title: BounceInDown(
@@ -272,18 +277,26 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
       ),
       floatingActionButton: BounceInUp(
         child: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatScreen(
-                  storeId: widget.store.id!,
-                  currentUser: widget.user,
-                  storeImageUrl: widget.store.imageUrl,
-                  userImageUrl: widget.user.profileImageUrl,
+          onPressed: () async {
+            final storeProvider = Provider.of<StoreProvider>(context, listen: false);
+            String? fetchedChatId = await storeProvider.findChatId(widget.user.id, widget.store.id!);
+
+            if(fetchedChatId == null){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ChatScreen( userId: widget.user.id, storeName: widget.store.name, storeId: widget.store.id!,)
                 ),
-              ),
-            );
+              );
+            }else{
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ChatScreen( chatId: fetchedChatId,userId: widget.user.id, storeName: widget.store.name, storeId: widget.store.id!,)
+                ),
+              );
+            }
+
           },
           label: Text(
             'Chat with Store',

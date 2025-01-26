@@ -428,5 +428,68 @@ class StoreProvider with ChangeNotifier {
       print('Error deleting video: $e');
     }
   }
+// Fetch owner details by storeId
+  Future<CustomUser?> fetchOwnerByStoreId(String storeId) async {
+    try {
+      // Query the users collection for an owner whose storeId matches
+      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'Owner')
+          .where('store.id', isEqualTo: storeId)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // Fetch the first matched owner (assuming one owner per store)
+        final ownerDoc = snapshot.docs.first;
+        return CustomUser.fromDocument(ownerDoc);
+      } else {
+        print('No owner found for storeId: $storeId');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching owner by storeId: $e');
+      return null;
+    }
+  }
+
+  Future<String?> findChatId(String customerId, String storeId) async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('chats')
+        .where('participants', arrayContains: customerId)
+        .get();
+
+    for (var doc in snapshot.docs) {
+      List participants = doc['participants'];
+      if (participants.contains(storeId)) {
+        return doc.id;
+      }
+    }
+    return null; // No chat found
+  }
+  Future<List<Map<String, dynamic>>> fetchUserChatsForOwner(String storeId) async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', arrayContains: storeId)
+          .orderBy('lastUpdated', descending: true)
+          .get();
+
+      // Parse chat metadata and return user details
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final participants = data['participants'] as List<dynamic>;
+        final customerId = participants.firstWhere((id) => id != storeId);
+        return {
+          'chatId': doc.id,
+          'customerId': customerId,
+          'lastMessage': data['lastMessage'] ?? '',
+          'lastUpdated': data['lastUpdated'] ?? Timestamp.now(),
+        };
+      }).toList();
+    } catch (e) {
+      print("Error fetching chats for owner: $e");
+      return [];
+    }
+  }
 
 }

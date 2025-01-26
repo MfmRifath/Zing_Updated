@@ -86,7 +86,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => StoreProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()..fetchGlobalRegistrationAmount()),
-        ChangeNotifierProvider(create: (_) => ChatProvider(userId: '', storeId: '', senderRole: '')),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => OfferProvider()..fetchOffers()),
         ChangeNotifierProvider(create: (_) => AdvertisementProvider()..fetchAdvertisements()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../Chat/ChatScreen.dart';
+import '../../Chat/ChatsScreen.dart';
 import '../../Modal/CoustomUser.dart';
 import '../../Service/CoustomUserProvider.dart';
 import '../../Service/StoreProvider.dart';
@@ -92,11 +93,8 @@ Widget buildStoreActions(Store userStore, CustomUser user, BuildContext context)
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ChatScreen(
+              builder: (context) => OwnerChatListScreen(
                 storeId: userStore.id!,
-                currentUser: user,
-                storeImageUrl: userStore.imageUrl,
-                userImageUrl: user.profileImageUrl,
               ),
             ),
           );

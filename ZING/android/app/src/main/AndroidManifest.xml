@@ -13,7 +13,8 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label"
-        android:hardwareAccelerated="false">
+        android:hardwareAccelerated="false"
+        android:enableOnBackInvokedCallback="true">
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD-Y7nIBM2QYYBVa7pTvT7GPCvFqEWtfN4"/>
 

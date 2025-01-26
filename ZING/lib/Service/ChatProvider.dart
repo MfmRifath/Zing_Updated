@@ -3,166 +3,160 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:rxdart/rxdart.dart';
+
 import '../Modal/ChatMessage.dart';
-import '../Modal/CoustomUser.dart';
 
 class ChatProvider with ChangeNotifier {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance; // Add FirebaseStorage instance
+  List<Message> messages = [];
+  List<Map<String, dynamic>> allChats = [];
 
-  String userId;
-  String storeId;
-  String senderRole; // 'Owner' or 'User'
-  final TextEditingController messageController = TextEditingController();
+  // Fetch active chats for the store
 
-  ChatProvider({
-    required this.userId,
-    required this.storeId,
-    required this.senderRole,
-  });
-
-  // Fetch messages between current user and store
-  Stream<List<ChatMessage>> fetchMessages() {
-    // Query 1: Messages where the user is the sender
-    final sentMessages = _firestore
-        .collection('chats')
-        .doc(storeId)
-        .collection('messages')
-        .where('senderId', isEqualTo: userId)
-        .snapshots();
-
-    // Query 2: Messages where the user is the receiver
-    final receivedMessages = _firestore
-        .collection('chats')
-        .doc(storeId)
-        .collection('messages')
-        .where('receiverId', isEqualTo: userId)
-        .snapshots();
-
-    // Combine both streams
-    return Rx.combineLatest2(
-      sentMessages,
-      receivedMessages,
-          (QuerySnapshot<Map<String, dynamic>> sentSnapshot, QuerySnapshot<Map<String, dynamic>> receivedSnapshot) {
-        // Map both sent and received messages
-        final sentList = sentSnapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
-        final receivedList = receivedSnapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
-
-        // Combine both lists
-        return [...sentList, ...receivedList];
-      },
-    ).map((messages) {
-      // Optionally, you can sort the combined messages by timestamp
-      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      return messages;
-    });
-  }
-
-
-
-  // Fetch messages only for the store owner
-  Stream<List<ChatMessage>> fetchMessagesForStoreOwner(String storeId) {
-    return _firestore
-        .collection('chats')
-        .doc(storeId)
-    // Ensure we're only fetching messages for this specific store
-        .collection('messages') // Store is the receiver
-        .snapshots()
-        .map((snapshot) {
-      List<ChatMessage> messages = snapshot.docs
-          .map((doc) => ChatMessage.fromFirestore(doc))
-          .toList();
-
-      // Sort messages by timestamp manually
-      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      return messages;
-    });
-  }
-
-  // Send message
-  Future<String?> uploadImage(File image) async {
+  Future<void> fetchAllUserChats(String storeId) async {
     try {
-      // Create a unique file name
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', arrayContains: storeId)
+          .orderBy('lastUpdated', descending: true)
+          .get();
 
-      // Upload image to Firebase Storage
-      final task = await _storage.ref('chat_images/$storeId/$fileName').putFile(image);
+      print("Fetched ${snapshot.docs.length} chats for storeId: $storeId");
 
-      // Get download URL of uploaded image
-      final downloadUrl = await task.ref.getDownloadURL();
-      return downloadUrl;
+      List<Map<String, dynamic>> chats = [];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        print("Chat data: $data");
+
+        final participants = data['participants'] as List<dynamic>;
+        final customerId = participants.firstWhere((id) => id != storeId);
+
+        // Add chat info to the list
+        chats.add({
+          'chatId': doc.id,
+          'customerId': customerId,
+          'lastMessage': data['lastMessage'] ?? '',
+          'lastUpdated': data['lastUpdated'] as Timestamp,
+        });
+      }
+
+      allChats = chats;
+      print("All chats: $allChats");
+      notifyListeners();
     } catch (e) {
-      print('Error uploading image: $e');
-      return null;
+      print("Error fetching all user chats: $e");
     }
   }
+  // Fetch messages for a specific chat
+  Future<void> fetchMessages(String chatId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .get();
 
-  // Updated sendMessage method to handle text and image
-  Future<void> sendMessage(
-      String message,
-      CustomUser? sender,
-      CustomUser? userReceiver,
-      [ChatMessage? replyToMessage, String? imageUrl]
-      ) async {
-    if (message.isEmpty && imageUrl == null || sender == null) return;
+    messages = snapshot.docs
+        .map((doc) => Message.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+        .toList();
 
-    final receiverId = sender.role == "User" ? storeId : userReceiver?.id;
-    if (receiverId == null) return;
+    notifyListeners();
+  }
 
-    final chatMessage = ChatMessage(
-      id: '',
-      message: message,
-      senderId: sender.role == "User" ? sender.id : storeId,
-      receiverId: receiverId,
-      senderName: sender.role == "User" ? sender.name : sender.store!.name,
-      senderProfileImageUrl: sender.role == "User" ? sender.profileImageUrl : sender.store!.imageUrl,
-      timestamp: Timestamp.now(),
-      replyToMessageId: replyToMessage?.id,
-      replyToMessageContent: replyToMessage?.message,
-      imageUrl: imageUrl,  // Pass the image URL if any
+  // Send a message
+  Future<void> sendMessage(String chatId, String senderId, String messageText) async {
+    final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+
+    await chatRef.collection('messages').add({
+      'senderId': senderId,
+      'message': messageText,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    await chatRef.update({
+      'lastMessage': messageText,
+      'lastUpdated': FieldValue.serverTimestamp(),
+    });
+
+    await fetchMessages(chatId);
+  }
+
+  // Create a new chat and return its ID
+  Future<String> createChat({
+    required String userId,
+    required String storeId,
+  }) async {
+    final chatId = '${userId}_$storeId';
+    final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+
+    await chatRef.set({
+      'participants': [userId, storeId],
+      'lastMessage': '',
+      'lastUpdated': FieldValue.serverTimestamp(),
+    });
+
+    return chatId;
+  }
+  // Send image
+  // Send image with placeholder
+  Future<void> sendImage(String chatId, String senderId, File imageFile) async {
+    final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+
+    // Add a placeholder message
+    final tempMessage = Message(
+      messageId: DateTime.now().toString(),
+      senderId: senderId,
+      message: imageFile.path,
+      timestamp: DateTime.now(),
+      isImage: true,
+      isUploading: true, // Mark as uploading
     );
 
-    await _firestore
-        .collection('chats')
-        .doc(storeId)
-        .collection('messages')
-        .add(chatMessage.toMap());
-
-    messageController.clear();  // Clear input after sending
-  }
-  // Delete a message
-  Future<void> deleteMessage(String messageId) async {
-    await _firestore
-        .collection('chats')
-        .doc(storeId)
-        .collection('messages')
-        .doc(messageId)
-        .delete();
-  }
-
-  @override
-  void dispose() {
-    messageController.dispose();
-    super.dispose();
-  }
-
-  // Update user ID
-  void updateUserId(String newUserId) {
-    userId = newUserId;
+    messages.insert(0, tempMessage);
     notifyListeners();
-  }
 
-  // Update store ID
-  void updateStoreId(String newStoreId) {
-    storeId = newStoreId;
-    notifyListeners();
-  }
+    try {
+      // Upload image to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('chat_images')
+          .child('$chatId/${DateTime.now().millisecondsSinceEpoch}.jpg');
 
-  // Update sender role
-  void updateSenderRole(String newRole) {
-    senderRole = newRole;
-    notifyListeners();
+      final uploadTask = await storageRef.putFile(imageFile);
+      final imageUrl = await uploadTask.ref.getDownloadURL();
+
+      // Save image to Firestore
+      await chatRef.collection('messages').add({
+        'senderId': senderId,
+        'message': imageUrl,
+        'isImage': true,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Remove placeholder and replace with actual message
+      messages.remove(tempMessage);
+      messages.insert(
+        0,
+        Message(
+          messageId: DateTime.now().toString(),
+          senderId: senderId,
+          message: imageUrl,
+          timestamp: DateTime.now(),
+          isImage: true,
+          isUploading: false,
+        ),
+      );
+      notifyListeners();
+
+      // Update chat metadata
+      await chatRef.update({
+        'lastMessage': '📷 Image',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error uploading image: $e');
+      messages.remove(tempMessage); // Remove placeholder on failure
+      notifyListeners();
+    }
   }
 }
