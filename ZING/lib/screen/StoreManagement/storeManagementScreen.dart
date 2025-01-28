@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:animate_do/animate_do.dart';
+
 import 'package:zing/Widgets/StoreManagementWidgets/BuildProductGride.dart';
 import 'package:zing/Widgets/StoreManagementWidgets/OrederWidets.dart';
-
 import '../../Modal/CoustomUser.dart';
 import '../../Service/CoustomUserProvider.dart';
 import '../../Widgets/StoreManagementWidgets/BuildRenewScreen.dart';
@@ -14,6 +15,8 @@ import '../../Widgets/StoreManagementWidgets/buildAddProductButton.dart';
 import '../../Widgets/StoreManagementWidgets/buildAddStoreButton.dart';
 
 class StoreManagementWidget extends StatefulWidget {
+  const StoreManagementWidget({Key? key}) : super(key: key);
+
   @override
   _StoreManagementWidgetState createState() => _StoreManagementWidgetState();
 }
@@ -24,7 +27,7 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
   bool _isLoading = true;
   int _daysLeft = 0;
   bool _hasAccess = true;
-  bool _showOrderManagement = false;
+
   late FirebaseFirestore _firestore;
 
   @override
@@ -109,136 +112,212 @@ class _StoreManagementWidgetState extends State<StoreManagementWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // If still loading
     if (_isLoading) {
-      return Center(
-        child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(width: 100, height: 100, color: Colors.grey[300]),
-              SizedBox(height: 16),
-              Container(width: 200, height: 20, color: Colors.grey[300]),
-            ],
-          ),
-        ),
-      );
+      return _buildLoadingShimmer();
     }
 
+    // If user or store access is missing
     if (_currentUser == null || !_currentUser!.storeAccess!) {
       return _buildAccessDeniedScreen();
     }
 
-    return _buildStoreManagementContent();
-  }
-
-  Widget _buildAccessDeniedScreen() {
-    return Center(
-      child: Card(
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.lock, size: 64, color: Colors.red),
-              SizedBox(height: 16),
-              Text(
-                "Access Denied",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "You don't have access to this section.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-              SizedBox(height: 24),
-              if (_currentUser?.store == null) buildAddStoreButton(context),
-              if (!_hasAccess) buildRenewScreen(context, _currentUser!),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStoreManagementContent() {
+    // Otherwise, show store management content
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Store Header
-              buildStoreHeader(_currentUser!.store!, _currentUser!, context),
+        body: _buildStoreManagementBody(),
+        floatingActionButton: _buildFABIfNeeded(),
+      ),
+    );
+  }
 
-              // Warning Banner if necessary
-              if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
+  // --------------------------------------------------------------------------
+  // Optional FAB
+  Widget? _buildFABIfNeeded() {
+    // Return null if you don't want a FAB
+    return FloatingActionButton(
+      onPressed: () {
+        // Some action or navigation
+      },
+      child: const Icon(Icons.add),
+    );
+  }
 
-              // Action Buttons for toggling views
-              _buildActionButtons(),
+  // --------------------------------------------------------------------------
+  // Main content in SingleChildScrollView
+  Widget _buildStoreManagementBody() {
+    return Container(
+      // optional gradient
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade50, Colors.blue.shade100],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            buildStoreHeader(_currentUser!.store!, _currentUser!, context),
 
-              // Conditional rendering of either Order Management or Store Page
-              _showOrderManagement
-                  ? OrderManagementPage(storeId: _currentUser!.store!.id!)
-                  : buildProductGrid(
-                _currentUser!.store!,
-                _products,
-                context,
-              ),
-            ],
+            // Warning if near expiry
+            if (_daysLeft <= 7 && _daysLeft > 0) _buildWarningBanner(),
+
+            // Row of action buttons
+            _buildActionButtons(),
+
+            // Show Product Grid by default
+            _buildProductSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Product section (with shrinkWrap grid)
+  Widget _buildProductSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: buildProductGrid(
+        _currentUser!.store!,
+        _products,
+        context,
+      ),
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Loading shimmer
+  Widget _buildLoadingShimmer() {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(width: 100, height: 100, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Container(width: 200, height: 20, color: Colors.grey[300]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Access Denied Screen
+  Widget _buildAccessDeniedScreen() {
+    return Center(
+      child: FadeIn(
+        child: Card(
+          margin: const EdgeInsets.all(24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 6,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock, size: 64, color: Colors.red.shade700),
+                const SizedBox(height: 16),
+                Text(
+                  "Access Denied",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "You don't have access to this section.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 24),
+                if (_currentUser?.store == null)
+                  buildAddStoreButton(context),
+                if (!_hasAccess)
+                  buildRenewScreen(context, _currentUser!),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // --------------------------------------------------------------------------
+  // The warning banner for soon-to-expire store
   Widget _buildWarningBanner() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning, color: Colors.red),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              "Your store access expires in $_daysLeft days. Renew now!",
-              style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold),
+    return Bounce(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red.shade400),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "Your store access expires in $_daysLeft days. Renew now!",
+                style: TextStyle(
+                  color: Colors.red.shade900,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+  // --------------------------------------------------------------------------
+  // Buttons row
   Widget _buildActionButtons() {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => setState(() => _showOrderManagement = !_showOrderManagement),
-              child: Text(_showOrderManagement ? "Back to Store" : "Manage Orders"),
+    return FadeInDown(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                // Instead of toggling pages, we navigate to a new route:
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        OrderManagementPage(storeId: _currentUser!.store!.id!),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text(
+                  "Manage Orders",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
             ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: buildAddProductButton(_currentUser!.store!, context),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: buildAddProductButton(_currentUser!.store!, context),
+            ),
+          ],
+        ),
       ),
     );
   }

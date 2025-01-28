@@ -94,7 +94,7 @@ Widget buildStoreActions(Store userStore, CustomUser user, BuildContext context)
             context,
             MaterialPageRoute(
               builder: (context) => OwnerChatListScreen(
-                storeId: userStore.id!,
+                store: userStore,
               ),
             ),
           );
